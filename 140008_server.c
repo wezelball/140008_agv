@@ -3,6 +3,7 @@
  * usage: 140008_server <port>
  */
 
+/* System includes */
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -14,8 +15,12 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <time.h>
+
+/* Local includes */
 #include "robotMap.h"
 #include "140008lib.h"
+#include "controlLoop.h"
+#include "procedures.h"
 
 /* Includes for RPi only*/
 #ifdef RPI
@@ -25,80 +30,6 @@
 
 #define BUFSIZE 1024
 #define MSGSIZE 32
-
-/*
- * error - wrapper for perror
- */
-void error(char *msg) {
-	perror(msg);
-	exit(1);
-}
-
-/* Global variables for thread and control loop use only */
-clock_t startClock, finishClock; // for checking elapsed time
-double elapsedTime; 	// time in seconds for master clock
-bool timing = false;	// timing flag 
-float loopTime = 0.050;	// Control loop time
-int i_thread = 0;	// test variable
-
-/* Abstracted I/O functions*/
-void bitWrite(int pin, int value)	{
-	#ifdef RPI
-		digitalWrite(pin, value);
-	#else
-		printf("Digital Write: pin: %d, value: %d\n", pin, value);
-	#endif
-} 
-
-int bitRead(int pin)	{
-	#ifdef RPI
-		return (digitalRead(pin));
-	#else
-		printf("Digital Read: pin: %d, value: unknown\n", pin);
-		return(0);
-	#endif
-}
-
-int PWMWrite(int pin, int value)	{
-	int scaledValue = value/9 + 15;
-	#ifdef RPI
-		softPwmWrite(pin, scaledValue);
-	#else
-		printf("PWM Write: pin: %d, value: %d\n", pin, scaledValue);
-	#endif
-	return scaledValue;
-}
-
-/*
-* This is where the timing loop for the master clock is generated
-* it currently calls one control loop, but could be 
-* extended in the future
-*/
-PI_THREAD (myThread)	{
-	while(true)
-	{
-		if (timing == false){
-			startClock = clock();
-			timing = true;
-		}
-		finishClock = clock();
-		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
-		if (elapsedTime >= loopTime) {
-			//printf("%f\n", elapsedTime);
-			loopTimerCallback();
-			timing = false;
-		}
-	}
-}
-
-/*
-* This is where the control loops go - this is called by
-* myThread, 
-*/
-/*void loopTimerCallback(void)
-{
-	
-}*/
 
 int main(int argc, char **argv) {
 	int parentfd; /* parent socket */
@@ -120,6 +51,14 @@ int main(int argc, char **argv) {
 	char reply[MSGSIZE]; /*send reply to command*/
 	bool I_AM_PI; /* true if raspberry pi */
 	
+	/* Global variables for thread and control loop use only */
+	clock_t startClock, finishClock; // for checking elapsed time
+	double elapsedTime; 	// time in seconds for master clock
+	bool timing = false;	// timing flag 
+	float loopTime = 0.050;	// Control loop time
+	int i_thread = 0;	// test variable
+
+
 	/* Determine if I am a Raspberry Pi*/
 	#ifdef NOPI
 		I_AM_PI = false;

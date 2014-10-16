@@ -24,4 +24,4 @@ procedures_pi: procedures.o
 	gcc -DNOPI -g 140008_server.c -o 140008_server
 	
 clean: 
-	rm -rf *.o 140008_client 140008_server controlLoop procedures DEADJOE *~
+	rm -rf *.o 140008_client 140008_server DEADJOE *~
