@@ -1,3 +1,5 @@
+#include <time.h>
+#include "140008lib.h"
 /*
  * error - wrapper for perror
  */
@@ -40,6 +42,11 @@ int PWMWrite(int pin, int value)	{
 * extended in the future
 */
 PI_THREAD (myThread)	{
+	clock_t startClock, finishClock; // for checking elapsed time
+	double elapsedTime; 	// time in seconds for master clock
+	bool timing = false;	// timing flag 
+	float loopTime = 0.050;	// Control loop time
+	int i_thread = 0;	// test variable
 	while(true)
 	{
 		if (timing == false){

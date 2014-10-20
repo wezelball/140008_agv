@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <time.h>
+//#include <time.h>
 
 /* Local includes */
 #include "robotMap.h"
@@ -50,14 +50,6 @@ int main(int argc, char **argv) {
 	int comval; /*value of command*/
 	char reply[MSGSIZE]; /*send reply to command*/
 	bool I_AM_PI; /* true if raspberry pi */
-	
-	/* Global variables for thread and control loop use only */
-	clock_t startClock, finishClock; // for checking elapsed time
-	double elapsedTime; 	// time in seconds for master clock
-	bool timing = false;	// timing flag 
-	float loopTime = 0.050;	// Control loop time
-	int i_thread = 0;	// test variable
-
 
 	/* Determine if I am a Raspberry Pi*/
 	#ifdef NOPI

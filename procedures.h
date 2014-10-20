@@ -1,5 +1,6 @@
 #ifndef PROCEDURES_H_INCLUDED
 #define PROCEDURES_H_INCLUDED
+#endif
 /* ^^ these are the include guards */
 
 /* Function prototypes */
