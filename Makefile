@@ -20,8 +20,8 @@ controlLoop.o: controlLoop.c
 procedures_pi: procedures.o
 	gcc -g procedures.c -o procedures
 
-140008_server_x86: 140008_server.o 
-	gcc -DNOPI -g 140008_server.c -o 140008_server
+140008_server_x86: 140008_server.o controlLoop.o procedures.o
+	gcc -DNOPI -g 140008_server.o controlLoop.o procedures.o -o 140008_server
 	
 clean: 
 	rm -rf *.o 140008_client 140008_server DEADJOE *~
