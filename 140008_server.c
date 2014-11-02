@@ -58,8 +58,7 @@ int main(int argc, char **argv) {
 
 	/* 
 	 * If this is a RPi, set up the gpio pins
-	 * This should be abstracted later to a 
-	 * generic writePin readPin command 
+	 * 
 	 */
 	#ifdef RPI
 		printf("RPI setup found\n");
@@ -205,25 +204,18 @@ int main(int argc, char **argv) {
 			strcpy(reply, "Command not supported\n");
 			break;
 		case 1: /* version */
-			strcpy(reply, "Flexicart S/N: 00 \nVersion 0.0.0\n");
+			strcpy(reply, "Flexicart S/N: 00 \nVersion 20141102\n");
 			break;
-		case 2:
-			// Make sure user doesn't enter stupid values, but need
-			// to determine what values are considered stupid
-			if (comaddr < 0 || comaddr > 5)	{
-				perror("invalid address, dumbass!");
-				strcpy(reply, "false\n");
-				break;
-			}
-			if ((comval != 0) && (comval != 1))	{
-				perror("invalid value, idiothead!");
-				strcpy(reply, "false\n");
-				break;
-			}
+		case 2: /* Digital read */
 			sprintf(reply, "%d", bitRead(comaddr));
 			break;
-		case 3:
-			printf("DigitalWrite\n");
+		case 3: /* Digital write */
+			/* Only a 0 or 1 allowed */
+			if ((comval != 0) && (comval != 1))	{
+				perror("0 or 1 only");
+				strcpy(reply, "false\n");
+				break;
+			}
 			bitWrite(comaddr, comval);
 			strcpy(reply, "true\n");
 			break;
@@ -235,15 +227,14 @@ int main(int argc, char **argv) {
 			printf("AnalogWrite not supported\n");
 			strcpy(reply, "false\n");
 			break;
-		case 6:
-			/* This is the abstracted command */
+		case 6: /* PWM write */
 			if(comval >= -100 && comval <= 100)
 			{
 				sprintf(reply, "%d\n", PWMWrite(comaddr, comval));
 			}
 			else
 			{
-				strcpy(reply, "false\n");
+				strcpy(reply, "invalid value.\n");
 			}
 			break;
 		case 7:

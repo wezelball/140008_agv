@@ -32,7 +32,7 @@ int bitRead(int pin)	{
 	#ifdef RPI
 		return (digitalRead(pin));
 	#else
-		printf("Digital Read: pin: %d, value: unknown\n", pin);
+		printf("Simulated Digital Read: pin: %d, value: unknown\n", pin);
 		return(0);
 	#endif
 }
