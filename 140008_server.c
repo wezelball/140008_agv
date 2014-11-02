@@ -62,24 +62,24 @@ int main(int argc, char **argv) {
 	 * generic writePin readPin command 
 	 */
 	#ifdef RPI
+		printf("RPI setup found\n");
 		wiringPiSetup();
 		//pinMode(int pin, int output);
-		pinMode(D_FR_LT, OUTPUT);
-		pinMode(D_FR_RT, OUTPUT);
-		pinMode(D_RR_LT, OUTPUT);
-		//pinMode(D_RR_RT, OUTPUT);
-		//pinMode(CNVYR_DR, OUTPUT);
-		pinMode(MAG_SR_FT, OUTPUT);
-		pinMode(MAG_SR_RR, OUTPUT);
-		pinMode(MAG_SR_LT, OUTPUT);
-		pinMode(MAG_SR_RT, OUTPUT);
-		pinMode(BATT_CURR, OUTPUT);
-		pinMode(BATT_VOLT, OUTPUT);
+		pinMode(MAG_SR_FT, INPUT);
+		pinMode(MAG_SR_RR, INPUT);
+		pinMode(MAG_SR_LT, INPUT);
+		pinMode(MAG_SR_RT, INPUT);
 		pinMode(MAG_SLND, OUTPUT);
+		pinMode(16, OUTPUT);
+		//pinMode(RELAY_ENABLE, OUTPUT);
 		//softPwmCreate(int pin, int initialValue, int pwmRange); 
-		softPwmCreate(15, 0, 100); // LED test light
-		softPwmCreate(16, 0, 100); // jumped for oscope
-		piThreadCreate(myThread);
+		//softPwmCreate(15, 0, 100); // LED test light
+		//softPwmCreate(16, 0, 100); // jumped for oscope
+		softPwmCreate(D_FR_LT, 0, 100);
+		softPwmCreate(D_FR_RT, 0, 100);
+		softPwmCreate(D_RR_LT, 0, 100);
+		softPwmCreate(D_RR_RT, 0, 100);
+		//piThreadCreate(myThread);
 	#endif
 
 	/* 

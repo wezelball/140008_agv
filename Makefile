@@ -8,17 +8,17 @@ x86: 140008_client 140008_server_x86
 140008_client: 140008_client.o
 	gcc -g 140008_client.c -o 140008_client
 
-140008_server_pi: 140008_server.o controlLoop.o procedures.o
+140008_server_pi: 140008_obj_pi controlLoop.o procedures_pi
 	gcc -DRPI -g 140008_server.o controlLoop.o procedures.o -o 140008_server $(PILIBS) $(PIINCLUDES)
 
-140008_server.o: 140008_server.c
-	gcc -c 140008_server.c $(PILIBS) $(PIINCLUDES)
+140008_obj_pi: 140008_server.c
+	gcc -DRPI -c 140008_server.c $(PILIBS) $(PIINCLUDES)
 	
 controlLoop.o: controlLoop.c
 	gcc -g -c controlLoop.c
 
 procedures_pi: procedures.o
-	gcc -g procedures.c -o procedures
+	gcc -DRPI -g -c procedures.c
 
 140008_server_x86: 140008_server.o controlLoop.o procedures.o
 	gcc -DNOPI -g 140008_server.o controlLoop.o procedures.o -o 140008_server

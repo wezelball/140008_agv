@@ -1,5 +1,8 @@
+#include <stdlib.h>
 #include <time.h>
 #include "140008lib.h"
+#include <wiringPi.h>
+#include <softPwm.h>
 /*
  * error - wrapper for perror
  */
@@ -11,9 +14,17 @@ void error(char *msg) {
 /* Abstracted I/O functions*/
 void bitWrite(int pin, int value)	{
 	#ifdef RPI
-		digitalWrite(pin, value);
+		if (value == 0)	{
+			digitalWrite(pin, LOW);
+			printf("Digital Write, pin %d, value: %d\n", pin, LOW);
+		}
+
+		if (value == 1)	{
+			digitalWrite(pin, HIGH);
+			printf ("Digital Write, pin %d, value: %d\n", pin, HIGH);
+		}
 	#else
-		printf("Digital Write: pin: %d, value: %d\n", pin, value);
+		printf("Simulated Digital Write: pin: %d, value: %d\n", pin, value);
 	#endif
 } 
 
