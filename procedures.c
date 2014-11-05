@@ -1,8 +1,10 @@
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "140008lib.h"
 #include <wiringPi.h>
 #include <softPwm.h>
+#include "procedures.h"
+
 /*
  * error - wrapper for perror
  */
@@ -48,28 +50,13 @@ int PWMWrite(int pin, int value)	{
 }
 
 /*
-* This is where the timing loop for the master clock is generated
-* it currently calls one control loop, but could be 
-* extended in the future
-*/
-PI_THREAD (myThread)	{
-	clock_t startClock, finishClock; // for checking elapsed time
-	double elapsedTime; 	// time in seconds for master clock
-	bool timing = false;	// timing flag 
-	float loopTime = 0.050;	// Control loop time
-	int i_thread = 0;	// test variable
-	while(true)
-	{
-		if (timing == false){
-			startClock = clock();
-			timing = true;
-		}
-		finishClock = clock();
-		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
-		if (elapsedTime >= loopTime) {
-			//printf("%f\n", elapsedTime);
-			loopTimerCallback();
-			timing = false;
-		}
-	}
+ * Executes acceleration ramp for a given motor
+ * Needs to alert a loop callback to increment 
+ * motor speed values in the proper fashion
+ *  
+ */
+int motorRamp(int motor, int finalSpeed, int accel)	{
+	printf("You asked for ramp for motor %d spped %d accel %d\n", motor, finalSpeed, accel);
+	printf("Don't know what the hell to do here yet..\n");
+	return 0;
 }

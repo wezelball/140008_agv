@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
-//#include <time.h>
+#include <time.h>
 
 /* Local includes */
 #include "robotMap.h"
@@ -30,6 +30,38 @@
 
 #define BUFSIZE 1024
 #define MSGSIZE 32
+
+/* Global variables (thou art evil) */
+int fl_motor_speed = 0; //front left motor
+int fr_motor_speed = 0; //front right motor
+int rl_motor_speed = 0; //rear left motor
+int rr_motor_speed = 0; //rear right motor
+
+/*
+* This is where the timing loop for the master clock is generated
+* it currently calls one control loop, but could be 
+* extended in the future
+*/
+PI_THREAD (myThread)	{
+	clock_t startClock, finishClock; // for checking elapsed time
+	double elapsedTime; 	// time in seconds for master clock
+	bool timing = false;	// timing flag 
+	float masterLoopTime = 0.050;	// Control loop time
+	int i_thread = 0;	// test variable
+	while(true)
+	{
+		if (timing == false){
+			startClock = clock();
+			timing = true;
+		}
+		finishClock = clock();
+		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
+		if (elapsedTime >= masterLoopTime) {
+			masterLoopCallback(); /* there is a single master loop for now */
+			timing = false;
+		}
+	}
+}
 
 int main(int argc, char **argv) {
 	int parentfd; /* parent socket */
@@ -78,7 +110,7 @@ int main(int argc, char **argv) {
 		softPwmCreate(D_FR_RT, 0, 100);
 		softPwmCreate(D_RR_LT, 0, 100);
 		softPwmCreate(D_RR_RT, 0, 100);
-		//piThreadCreate(myThread);
+		piThreadCreate(myThread);
 	#endif
 
 	/* 
@@ -166,6 +198,10 @@ int main(int argc, char **argv) {
     
 		/* 
 		 * read: read input string from the client
+		 * 
+		 * NOTE:
+		 * Need to fix to allow arbitrary number of arguments
+		 * 
 		 */
 		bzero(buf, BUFSIZE);
 		bzero(input, BUFSIZE);
@@ -237,8 +273,34 @@ int main(int argc, char **argv) {
 				strcpy(reply, "invalid value.\n");
 			}
 			break;
-		case 7:
-			printf("Beat\n");
+		case 7: /* ramp motor speed */
+			/* parameters : motor, end_speed, accel
+			 * 0 - front left 
+			 * 1 - front right
+			 * 2 - rear left
+			 * 3 - rear right
+			 */
+			 if (comaddr < 0 || comaddr > 3) // motor number
+			 {
+				 printf("Valid values 0 to 3.\n");
+				 strcpy(reply, "false\n");
+				 break;
+			 }
+			 else if(comval < -100 || comval > 100) // motor speed
+			 {
+				 printf("Valid values -100 to 100.\n");
+				 strcpy(reply, "false\n");
+				 break;
+			 }
+			
+			 /* start motor ramp 
+			  * 
+			  * I wanted to pass accel as a parameter, but we need to
+			  * fix routine to accept more arguments
+			  * Will hardcode accel for now
+			  */
+			 motorRamp(comaddr, comval, 2);
+			
 			break;
 		case 99:	// quit
 			return(0);

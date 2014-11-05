@@ -21,3 +21,13 @@ converter in the near future.
 
 Need to create a wireless access point for the cart and attached
 devices.
+
+11/4/14
+Fixed left drive which was a electrical issue.  Motors run forward when
+given a positive speed.
+
+Got rid of some compiler warnings by adding proper includes.
+
+Fixed threads by movibng back into main
+
+Started code on speed ramp generation.
