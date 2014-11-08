@@ -32,10 +32,9 @@
 #define MSGSIZE 32
 
 /* Global variables (thou art evil) */
-int fl_motor_speed = 0; //front left motor
-int fr_motor_speed = 0; //front right motor
-int rl_motor_speed = 0; //rear left motor
-int rr_motor_speed = 0; //rear right motor
+int lt_motor_speed = 0; //front left motor
+int rt_motor_speed = 0; //front right motor
+bool tank_drive_enabled = false;//if agv should be driving in tank
 
 /*
 * This is where the timing loop for the master clock is generated
@@ -48,8 +47,9 @@ PI_THREAD (myThread)	{
 	bool timing = false;	// timing flag 
 	float masterLoopTime = 0.050;	// Control loop time
 	int i_thread = 0;	// test variable
+	printf("hello!\n");
 	while(true)
-	{
+	{/*
 		if (timing == false){
 			startClock = clock();
 			timing = true;
@@ -57,9 +57,15 @@ PI_THREAD (myThread)	{
 		finishClock = clock();
 		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
 		if (elapsedTime >= masterLoopTime) {
-			masterLoopCallback(); /* there is a single master loop for now */
+			if(tank_drive_enabled == true)
+			{
+				masterLoopCallback(lt_motor_speed, rt_motor_speed); /* there is a single master loop for now 
+			}
 			timing = false;
-		}
+		}*/
+		if(tank_drive_enabled)
+		        masterLoopCallback(lt_motor_speed, rt_motor_speed);
+		usleep(500000);
 	}
 }
 
@@ -217,9 +223,11 @@ int main(int argc, char **argv) {
 		param[1] = strtok(NULL, " ");
 		param[2] = strtok(NULL, "\0");
 
+
 		// The command is always the first parameter
 		command = atoi(param[0]);
-		
+
+
 		/*
 		 * This code is here to insure that we react properly to the
 		 * number of bytes sent. If a variable assignment is made
@@ -237,7 +245,10 @@ int main(int argc, char **argv) {
 		// Branch according to command number
 		switch (command) {
 		case 0: /* RPi pin test - */
-			strcpy(reply, "Command not supported\n");
+			bitWrite(16, 0);
+			bitWrite(16, 0);
+			printf("Emergency Stop!\n");
+			return(0);
 			break;
 		case 1: /* version */
 			strcpy(reply, "Flexicart S/N: 00 \nVersion 20141102\n");
@@ -264,6 +275,10 @@ int main(int argc, char **argv) {
 			strcpy(reply, "false\n");
 			break;
 		case 6: /* PWM write */
+			if(comaddr == 10 || comaddr == 11 || comaddr == 26 || comaddr == 15)
+			{
+				tank_drive_enabled = false;
+			}
 			if(comval >= -100 && comval <= 100)
 			{
 				sprintf(reply, "%d\n", PWMWrite(comaddr, comval));
@@ -302,7 +317,30 @@ int main(int argc, char **argv) {
 			 motorRamp(comaddr, comval, 2);
 			
 			break;
+		case 8: /*Tank Drive*/
+			switch(comval) {
+			case 0:
+				lt_motor_speed = 0;
+				rt_motor_speed = 0;
+				tank_drive_enabled = false;
+				break;
+			case 1:
+				tank_drive_enabled = true;
+				lt_motor_speed = comaddr;
+				rt_motor_speed = comaddr;
+				break;
+			default:
+				printf("error\n");
+				break;
+			}
+			break;
 		case 99:	// quit
+			lt_motor_speed = 0;
+			rt_motor_speed = 0;
+			masterLoopCallback(lt_motor_speed, rt_motor_speed);
+			tank_drive_enabled = false;
+			bitWrite(16, 0);
+			printf("Shutdown now\n");
 			return(0);
 			break;
 		default:
@@ -318,4 +356,8 @@ int main(int argc, char **argv) {
 
 		close(childfd);
 	}	
+	bitWrite(16, 0);
+	bitWrite(16, 0);
+	printf("Server Closing\n");
+	return(0);
 }

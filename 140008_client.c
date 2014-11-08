@@ -84,6 +84,10 @@ int main(int argc, char **argv) {
 		/* print the server's reply */
 		bzero(buf, BUFSIZE);
 		n = read(sockfd, buf, BUFSIZE);
+		if(buf == NULL)
+		{
+			buf == "\n";
+		}
 		if (n < 0) 
 			error("ERROR reading from socket");
 		printf("Echo from server: %s", buf);

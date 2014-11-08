@@ -4,4 +4,4 @@
 /* ^^ these are the include guards */
 
 /* Function prototypes */
-void loopTimerCallback(void);
+void loopTimerCallback(int leftSpeed, int rightSpeed);
