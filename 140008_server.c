@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
 	int comaddr; /*addr for command to go*/
 	int comval; /*value of command*/
 	char reply[MSGSIZE]; /*send reply to command*/
+	fd_set fds; /*not 100% what this line does, but is nec*/
 	bool I_AM_PI; /* true if raspberry pi */
 
 	/* Determine if I am a Raspberry Pi*/
@@ -211,6 +212,14 @@ int main(int argc, char **argv) {
 		 */
 		bzero(buf, BUFSIZE);
 		bzero(input, BUFSIZE);
+		/*		
+		do {
+		        FD_ZERO(&fds);
+		        FD_SET(&fds, fd);
+		        usleep(500000);
+                }
+		while(select(fd+1, &fds, 0, 0) != 1);
+		*/		
 		n = read(childfd, buf, BUFSIZE);
 		if (n < 0) 
 			error("ERROR reading from socket");
@@ -226,7 +235,6 @@ int main(int argc, char **argv) {
 
 		// The command is always the first parameter
 		command = atoi(param[0]);
-
 
 		/*
 		 * This code is here to insure that we react properly to the
@@ -318,6 +326,7 @@ int main(int argc, char **argv) {
 			
 			break;
 		case 8: /*Tank Drive*/
+			printf("Entered tank drive...\n");
 			switch(comval) {
 			case 0:
 				lt_motor_speed = 0;
@@ -333,6 +342,25 @@ int main(int argc, char **argv) {
 				printf("error\n");
 				break;
 			}
+			break;
+         case 9:
+			if(bitRead(7) == 0 && bitRead(21) == 0 && bitRead(22) == 0 && bitRead(23) == 0 )
+				{
+					strcpy(reply, "all covered!");
+					tank_drive_enabled = true;
+					while(bitRead(7) == 0 && bitRead(21) == 0 && bitRead(22) == 0 && bitRead(23) == 0)
+					{
+						lt_motor_speed = 50;
+						rt_motor_speed = 50;
+					}
+					lt_motor_speed = 0;
+					rt_motor_speed = 0;
+					tank_drive_enabled = false;
+				}
+			else
+				{
+                   sprintf(reply, "%d", bitRead(comaddr));
+				}
 			break;
 		case 99:	// quit
 			lt_motor_speed = 0;
@@ -356,7 +384,6 @@ int main(int argc, char **argv) {
 
 		close(childfd);
 	}	
-	bitWrite(16, 0);
 	bitWrite(16, 0);
 	printf("Server Closing\n");
 	return(0);
