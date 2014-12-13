@@ -34,3 +34,6 @@ Started code on speed ramp generation.
 
 12/12/14
 Password for remote access is 140008
+
+12/13/14
+Almost to the point of line tracking - fixed a lot of stuff in the code

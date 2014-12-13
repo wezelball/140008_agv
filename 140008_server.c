@@ -34,7 +34,9 @@
 /* Global variables (thou art evil) */
 int lt_motor_speed = 0; //front left motor
 int rt_motor_speed = 0; //front right motor
-bool tank_drive_enabled = false;//if agv should be driving in tank
+// True if we are line tracking
+bool lineTracking = false;
+bool firstTimeTracking = true;
 
 /*
 * This is where the timing loop for the master clock is generated
@@ -45,11 +47,11 @@ PI_THREAD (myThread)	{
 	clock_t startClock, finishClock; // for checking elapsed time
 	double elapsedTime; 	// time in seconds for master clock
 	bool timing = false;	// timing flag 
-	float masterLoopTime = 0.050;	// Control loop time
+	float masterLoopTime = 0.100;	// Control loop time
 	int i_thread = 0;	// test variable
 	printf("hello!\n");
 	while(true)
-	{/*
+	{
 		if (timing == false){
 			startClock = clock();
 			timing = true;
@@ -57,15 +59,17 @@ PI_THREAD (myThread)	{
 		finishClock = clock();
 		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
 		if (elapsedTime >= masterLoopTime) {
-			if(tank_drive_enabled == true)
-			{
-				masterLoopCallback(lt_motor_speed, rt_motor_speed); /* there is a single master loop for now 
-			}
+			printf("Ping!\n");
 			timing = false;
-		}*/
-		if(tank_drive_enabled)
-		        masterLoopCallback(lt_motor_speed, rt_motor_speed);
-		usleep(500000);
+		}
+		if (lineTracking)
+			lineTrack(50);
+		/*
+		 * This is required to prevent thread from consuming 100% CPU
+		 * so far, min. value seems to be 100000 - below that and 
+		 * CPU gobble occurs
+		 */
+		 usleep(100000); 
 	}
 }
 
@@ -102,21 +106,19 @@ int main(int argc, char **argv) {
 	#ifdef RPI
 		printf("RPI setup found\n");
 		wiringPiSetup();
-		//pinMode(int pin, int output);
-		pinMode(MAG_SR_FT, INPUT);
-		pinMode(MAG_SR_RR, INPUT);
-		pinMode(MAG_SR_LT, INPUT);
-		pinMode(MAG_SR_RT, INPUT);
+		
+		// Magnetic tape sensors
+		pinMode(MAG_FL, INPUT);
+		pinMode(MAG_FR, INPUT);
+		pinMode(MAG_RL, INPUT);
+		pinMode(MAG_RR, INPUT);
 		pinMode(MAG_SLND, OUTPUT);
-		pinMode(16, OUTPUT);
-		//pinMode(RELAY_ENABLE, OUTPUT);
-		//softPwmCreate(int pin, int initialValue, int pwmRange); 
-		//softPwmCreate(15, 0, 100); // LED test light
-		//softPwmCreate(16, 0, 100); // jumped for oscope
-		softPwmCreate(D_FR_LT, 0, 100);
-		softPwmCreate(D_FR_RT, 0, 100);
-		softPwmCreate(D_RR_LT, 0, 100);
-		softPwmCreate(D_RR_RT, 0, 100);
+		pinMode(RELAY_ENABLE, OUTPUT);  // motor isolation relay
+		
+		softPwmCreate(DRIVE_FL, 0, 100);
+		softPwmCreate(DRIVE_FR, 0, 100);
+		softPwmCreate(DRIVE_RL, 0, 100);
+		softPwmCreate(DRIVE_RR, 0, 100);
 		piThreadCreate(myThread);
 	#endif
 
@@ -285,7 +287,8 @@ int main(int argc, char **argv) {
 		case 6: /* PWM write */
 			if(comaddr == 10 || comaddr == 11 || comaddr == 26 || comaddr == 15)
 			{
-				tank_drive_enabled = false;
+				lineTracking = false;
+				softStop();
 			}
 			if(comval >= -100 && comval <= 100)
 			{
@@ -325,48 +328,24 @@ int main(int argc, char **argv) {
 			 motorRamp(comaddr, comval, 2);
 			
 			break;
-		case 8: /*Tank Drive*/
-			printf("Entered tank drive...\n");
-			switch(comval) {
-			case 0:
-				lt_motor_speed = 0;
-				rt_motor_speed = 0;
-				tank_drive_enabled = false;
-				break;
-			case 1:
-				tank_drive_enabled = true;
-				lt_motor_speed = comaddr;
-				rt_motor_speed = comaddr;
-				break;
-			default:
-				printf("error\n");
-				break;
+
+         case 8:	// enable/disable line tracking
+			if (comaddr == 1)
+				lineTracking = true;
+			else
+			{
+				lineTracking = false;
+				firstTimeTracking = true;
+				// set motors to zero speed
+				softStop();
 			}
 			break;
-         case 9:
-			if(bitRead(7) == 0 && bitRead(21) == 0 && bitRead(22) == 0 && bitRead(23) == 0 )
-				{
-					strcpy(reply, "all covered!");
-					tank_drive_enabled = true;
-					while(bitRead(7) == 0 && bitRead(21) == 0 && bitRead(22) == 0 && bitRead(23) == 0)
-					{
-						lt_motor_speed = 50;
-						rt_motor_speed = 50;
-					}
-					lt_motor_speed = 0;
-					rt_motor_speed = 0;
-					tank_drive_enabled = false;
-				}
-			else
-				{
-                   sprintf(reply, "%d", bitRead(comaddr));
-				}
-			break;
+			
 		case 99:	// quit
 			lt_motor_speed = 0;
 			rt_motor_speed = 0;
 			masterLoopCallback(lt_motor_speed, rt_motor_speed);
-			tank_drive_enabled = false;
+			lineTracking = false;
 			bitWrite(16, 0);
 			printf("Shutdown now\n");
 			return(0);
@@ -383,8 +362,9 @@ int main(int argc, char **argv) {
 			error("ERROR writing to socket");
 
 		close(childfd);
-	}	
-	bitWrite(16, 0);
+	}
+	printf("Issuing ESTOP\n");
+	eStop(); // make sure motors and isolation relay are off	
 	printf("Server Closing\n");
 	return(0);
 }
