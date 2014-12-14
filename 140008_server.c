@@ -342,11 +342,11 @@ int main(int argc, char **argv) {
 			break;
 			
 		case 99:	// quit
-			lt_motor_speed = 0;
-			rt_motor_speed = 0;
-			masterLoopCallback(lt_motor_speed, rt_motor_speed);
+			//lt_motor_speed = 0;
+			//rt_motor_speed = 0;
+			//masterLoopCallback(lt_motor_speed, rt_motor_speed);
 			lineTracking = false;
-			bitWrite(16, 0);
+			eStop(); // make sure motors and isolation relay are off
 			printf("Shutdown now\n");
 			return(0);
 			break;
