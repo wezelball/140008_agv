@@ -82,6 +82,15 @@ void eStop(void){
 	bitWrite(RELAY_ENABLE, 0);
 }
 
+// Stop motion, clean up, and exit 
+void shutdown(void) {
+	lineTracking = false;
+	eStop();
+	printf("Server Closing\n");
+	return(0);
+}
+
+
 /*
  *  Call this procedure if the tracking flag is set to true
  * 	Return a value of ? if successful

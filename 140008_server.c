@@ -342,13 +342,7 @@ int main(int argc, char **argv) {
 			break;
 			
 		case 99:	// quit
-			lt_motor_speed = 0;
-			rt_motor_speed = 0;
-			masterLoopCallback(lt_motor_speed, rt_motor_speed);
-			lineTracking = false;
-			bitWrite(16, 0);
-			printf("Shutdown now\n");
-			return(0);
+			shutdown();
 			break;
 		default:
 			printf("Input in int-int-int format - wtf is wrong with you?\n");
@@ -363,8 +357,5 @@ int main(int argc, char **argv) {
 
 		close(childfd);
 	}
-	printf("Issuing ESTOP\n");
-	eStop(); // make sure motors and isolation relay are off	
-	printf("Server Closing\n");
-	return(0);
+	shutdown();
 }
