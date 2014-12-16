@@ -1,0 +1,58 @@
+[file_prefs]
+final_new_line=true
+ensure_convert_new_lines=false
+strip_trailing_spaces=false
+replace_tabs=false
+
+[indentation]
+indent_width=3
+indent_type=1
+indent_hard_tab_width=8
+detect_indent=false
+detect_indent_width=true
+indent_mode=2
+
+[project]
+name=140008_AGV
+base_path=/usr/local/src/140008_agv
+<<<<<<< HEAD
+description=
+=======
+description=AGV Control ala Raspberry Pi
+>>>>>>> 1abb5c0e368f04298a9a44504cbd974e76969afc
+file_patterns=
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=72
+
+[files]
+<<<<<<< HEAD
+current_page=6
+FILE_NAME_0=305;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008_client.c;0;4
+FILE_NAME_1=208;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008lib.h;0;4
+FILE_NAME_2=547;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008_server.c;0;4
+FILE_NAME_3=36;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FcontrolLoop.c;0;4
+FILE_NAME_4=0;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FcontrolLoop.h;0;4
+FILE_NAME_5=0;Make;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FMakefile;0;4
+FILE_NAME_6=1838;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fprocedures.c;0;4
+FILE_NAME_7=444;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fprocedures.h;0;4
+FILE_NAME_8=1136;Markdown;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FREADME.md;0;4
+FILE_NAME_9=1647;C;0;16;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FrobotMap.h;0;4
+=======
+current_page=3
+FILE_NAME_0=0;C;0;16;1;1;0;/usr/local/src/140008_agv/140008_client.c;0;4
+FILE_NAME_1=0;C;0;16;1;1;0;/usr/local/src/140008_agv/140008lib.h;0;4
+FILE_NAME_2=8849;C;0;16;1;1;0;/usr/local/src/140008_agv/140008_server.c;0;4
+FILE_NAME_3=116;C;0;16;1;1;0;/usr/local/src/140008_agv/controlLoop.c;0;4
+FILE_NAME_4=0;C;0;16;1;1;0;/usr/local/src/140008_agv/controlLoop.h;0;4
+FILE_NAME_5=0;Make;0;16;1;1;0;/usr/local/src/140008_agv/Makefile;0;4
+FILE_NAME_6=0;None;0;16;1;1;0;/usr/local/src/140008_agv/map.dat;0;4
+FILE_NAME_7=0;C;0;16;1;1;0;/usr/local/src/140008_agv/procedures.c;0;4
+FILE_NAME_8=0;C;0;16;1;1;0;/usr/local/src/140008_agv/procedures.h;0;4
+FILE_NAME_9=0;Markdown;0;16;1;1;0;/usr/local/src/140008_agv/README.md;0;4
+FILE_NAME_10=0;C;0;16;1;1;0;/usr/local/src/140008_agv/robotMap.h;0;4
+>>>>>>> 1abb5c0e368f04298a9a44504cbd974e76969afc
+
+[VTE]
+last_dir=/home
