@@ -342,7 +342,17 @@ int main(int argc, char **argv) {
 			break;
 			
 		case 99:	// quit
+<<<<<<< HEAD
 			shutdown();
+=======
+			//lt_motor_speed = 0;
+			//rt_motor_speed = 0;
+			//masterLoopCallback(lt_motor_speed, rt_motor_speed);
+			lineTracking = false;
+			eStop(); // make sure motors and isolation relay are off
+			printf("Shutdown now\n");
+			return(0);
+>>>>>>> 1abb5c0e368f04298a9a44504cbd974e76969afc
 			break;
 		default:
 			printf("Input in int-int-int format - wtf is wrong with you?\n");
