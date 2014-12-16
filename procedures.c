@@ -84,7 +84,7 @@ void eStop(void){
 }
 
 // Stop motion, clean up, and exit 
-void agvShutdown(void) {
+int agvShutdown(void) {
 	lineTracking = false;
 	eStop();
 	printf("Server Closing\n");

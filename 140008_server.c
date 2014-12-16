@@ -19,7 +19,6 @@
 /* Local includes */
 #include "robotMap.h"
 #include "140008lib.h"
-#include "controlLoop.h"
 #include "procedures.h"
 
 /* Includes for RPi only*/
