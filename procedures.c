@@ -6,8 +6,9 @@
 #include "procedures.h"
 #include "robotMap.h"
 
-
+// These are declared in 140008_server.c
 extern bool firstTimeTracking;
+extern bool lineTracking;
 
 /*
  * error - wrapper for perror
@@ -83,7 +84,7 @@ void eStop(void){
 }
 
 // Stop motion, clean up, and exit 
-void shutdown(void) {
+void agvShutdown(void) {
 	lineTracking = false;
 	eStop();
 	printf("Server Closing\n");

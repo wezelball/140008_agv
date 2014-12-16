@@ -13,5 +13,5 @@ int motorRamp(int, int, int); //motor speed ramp
 int lineTrack(int);
 void softStop(void);
 void eStop(void);
-void shutdown(void);
+void agvShutdown(void);
 
