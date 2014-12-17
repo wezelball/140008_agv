@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "140008lib.h"
-#include <wiringPi.h>
-#include <softPwm.h>
+#ifdef RPI
+	#include <wiringPi.h>
+	#include <softPwm.h>
+#endif
 #include "procedures.h"
 #include "robotMap.h"
 
