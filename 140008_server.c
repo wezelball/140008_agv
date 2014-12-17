@@ -58,7 +58,7 @@ PI_THREAD (myThread)	{
 		finishClock = clock();
 		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
 		if (elapsedTime >= masterLoopTime) {
-			printf("Ping!\n");
+			// The usleep() command below screws this up
 			timing = false;
 		}
 		if (lineTracking)
@@ -193,9 +193,14 @@ int main(int argc, char **argv) {
 			error("ERROR on accept");
     
 		/* 
-		 * gethostbyaddr: determine who sent the message 
+		 * gethostbyaddr: determine who sent the message
+		 * 
+		 * dcohen - I have disabled this currently as this breaks on 
+		 * a remote PC - need to find out why (see commented out below)
 		 */
-		hostp = gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr, 
+		 
+		 /*
+		hostp = gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr,
 				sizeof(clientaddr.sin_addr.s_addr), AF_INET);
 		if (hostp == NULL)
 			error("ERROR on gethostbyaddr");
@@ -203,6 +208,7 @@ int main(int argc, char **argv) {
 		if (hostaddrp == NULL)
 			error("ERROR on inet_ntoa\n");
 		printf("server established connection with %s (%s)\n", hostp->h_name, hostaddrp);
+		*/ 
     
 		/* 
 		 * read: read input string from the client
@@ -213,14 +219,7 @@ int main(int argc, char **argv) {
 		 */
 		bzero(buf, BUFSIZE);
 		bzero(input, BUFSIZE);
-		/*		
-		do {
-		        FD_ZERO(&fds);
-		        FD_SET(&fds, fd);
-		        usleep(500000);
-                }
-		while(select(fd+1, &fds, 0, 0) != 1);
-		*/		
+	
 		n = read(childfd, buf, BUFSIZE);
 		if (n < 0) 
 			error("ERROR reading from socket");
