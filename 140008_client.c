@@ -73,8 +73,8 @@ int main(int argc, char **argv) {
 		 */
 		if(strcmp(buf, "999\n") == 0)
 		{
-		        cont = 1;
-                }
+			cont = 1;
+      }
 	
 		/* send the message line to the server */
 		n = write(sockfd, buf, strlen(buf));
