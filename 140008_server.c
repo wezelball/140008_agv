@@ -35,7 +35,10 @@ int lt_motor_speed = 0; //front left motor
 int rt_motor_speed = 0; //front right motor
 // True if we are line tracking
 bool lineTracking = false;
+// Need to initialize tracking for first scan
 bool firstTimeTracking = true;
+// Now running under joystick control
+bool joystickControl = false;
 
 /*
 * This is where the timing loop for the master clock is generated
@@ -338,6 +341,17 @@ int main(int argc, char **argv) {
 				softStop();
 			}
 			break;
+			
+			case 9:	// enable/disable joystick control
+			if (comaddr == 1)
+				joystickControl = true;
+			else
+			{
+				joystickControl = false;
+				softStop();
+			}
+			break;
+			
 			
 		case 99:	// quit
 			agvShutdown();

@@ -10,7 +10,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+
 #include "robotMap.h"
+#include "140008lib.h"
 
 #define BUFSIZE 1024
 
@@ -28,7 +30,11 @@ int main(int argc, char **argv) {
 	struct hostent *server;
 	char *hostname;
 	char buf[BUFSIZE];
+	char* param[3];
 	int cont = 0;
+	bool joystickControl = false;
+	int command; /*command type for agv*/
+	int comaddr; /*addr for command to go*/
 
 	while(cont == 0)
 	{
@@ -67,6 +73,24 @@ int main(int argc, char **argv) {
 		printf("Please enter msg: ");
 		bzero(buf, BUFSIZE);
 		fgets(buf, BUFSIZE, stdin);
+	
+		/* Are we implementing joystick control */
+		param[0] = strtok(buf, " ");
+		param[1] = strtok(NULL, " ");
+		param[2] = strtok(NULL, "\0");
+		command = atoi(param[0]);
+		comaddr = atoi(param[1]);
+		
+		if (command == 9) {
+			if (comaddr == 1) {
+				joystickControl = true;
+				printf("Setting joystick control\n");
+			}
+			else {
+				joystickControl = false;
+				printf("Clearing joystick control\n");
+			}
+		}
 
 		/*
 		 *Check to see if we're killing the client
