@@ -343,9 +343,10 @@ int main(int argc, char **argv) {
 			break;
 			
 			case 9:	// enable/disable joystick control
-			if (comaddr == 1)
+			if (comaddr == 1) {
 				joystickControl = true;
 				printf("Joystick control set\n");
+			}
 			else
 			{
 				joystickControl = false;
