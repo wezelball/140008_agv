@@ -345,13 +345,14 @@ int main(int argc, char **argv) {
 			case 9:	// enable/disable joystick control
 			if (comaddr == 1)
 				joystickControl = true;
+				printf("Joystick control set\n");
 			else
 			{
 				joystickControl = false;
 				softStop();
+				printf("Joystick control cleared\n");
 			}
 			break;
-			
 			
 		case 99:	// quit
 			agvShutdown();
