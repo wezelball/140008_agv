@@ -34,10 +34,10 @@ static int joystick_fd = -1;
 int joystick_x_axis;
 int joystick_y_axis;
 int joystick_z_axis;
-bool fire_pressed = false;
+//bool fire_pressed = false;
 
 // true only if an event we are using is activated
-bool relevant = true;
+//bool relevant = true;
 
 int open_joystick(char *joystick_device)
 {
