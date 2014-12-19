@@ -331,14 +331,17 @@ int main(int argc, char **argv) {
 			break;
 
          case 8:	// enable/disable line tracking
-			if (comaddr == 1)
+			if (comaddr == 1) {
 				lineTracking = true;
+				strcpy(reply, "true\n");
+			}
 			else
 			{
 				lineTracking = false;
 				firstTimeTracking = true;
 				// set motors to zero speed
 				softStop();
+				strcpy(reply, "false\n");
 			}
 			break;
 			
@@ -346,17 +349,20 @@ int main(int argc, char **argv) {
 			if (comaddr == 1) {
 				joystickControl = true;
 				printf("Joystick control set\n");
+				strcpy(reply, "true\n");
 			}
 			else
 			{
 				joystickControl = false;
 				softStop();
 				printf("Joystick control cleared\n");
+				strcpy(reply, "false\n");
 			}
 			break;
 			
 		case 99:	// quit
 			agvShutdown();
+			return(0);
 			break;
 		default:
 			printf("Input in int-int-int format - wtf is wrong with you?\n");
@@ -372,4 +378,5 @@ int main(int argc, char **argv) {
 		close(childfd);
 	}
 	agvShutdown();
+	return(0);
 }

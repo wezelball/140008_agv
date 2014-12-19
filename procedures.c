@@ -13,6 +13,9 @@
 extern bool firstTimeTracking;
 extern bool lineTracking;
 
+int yaw = 0;
+int recoveryFromYaw = 0;
+
 /*
  * error - wrapper for perror
  */
@@ -96,6 +99,51 @@ int agvShutdown(void) {
 
 
 /*
+ *Just a basic mecanum drive, all drive should go through
+ *this function.
+ *
+ *@param xSpeed how mcuh the robot should move in the X
+ * direction
+ *
+ *@param ySpeed how much the robot should move in the Y
+ * direction
+ *
+ *@param twist at what rate the robot should be twisting
+ */
+//void mecanumDrive (int xSpeed, int ySpeed, int twist) {
+	//you are on a new level of quietness today
+	//int magnitude = (sqrt(xSpeed) + sqrt(ySpeed)^2;
+	//int theta = tan(x/y);
+	//if(x > 0 && y > 0)
+	//{
+		/*im just gonna write some pseudo code
+		
+		front right and rear left = magnitude;
+		front left and rear right = magnitude*(1 - theta/45);
+		
+		*/
+	//}
+	//else
+	//{
+		/*
+		
+		front left and rear right = magnitude;
+		front right and rear left = magnitude*(1 - theta/45);		
+		*/
+	//}
+	/*
+	front left = front left + twist;
+	rear left = rear left + twist;
+	front right = front right - twist;
+	rear right = rear right - twist;
+	if any of the above four numbers are now greater than 100 or
+	less than -100, then scale them all back so that that 
+	respective number is either -100 or 100
+	*/
+//}
+
+
+/*
  *  Call this procedure if the tracking flag is set to true
  * 	Return a value of ? if successful
  */
@@ -122,6 +170,19 @@ int lineTrack(int speed) {
 	magRL = bitRead(MAG_RL);
 	magRR = bitRead(MAG_RR);
 
+
+/*
+	if(yaw != 0)
+	{
+		switch(yaw)
+		case -1:
+			
+			break;
+		case 1:
+		
+			break;
+		case 
+	}*/
 	/*
 	*  There are 16 different cases for sensors possibilities
 	* 
@@ -146,9 +207,18 @@ int lineTrack(int speed) {
 	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
 	{
 		printf("Sensor alignment: yaw CCW\n");
+		if(yaw = -1)
+		{
+			//drive right side a bit faster
+		}
+		else
+		{
+			yaw = -1;
+		}
 	}
 	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
 	{
+		//translate to the right
 		printf("Sensor alignment: translated left\n");
 	}
 	if (magFR == PRESENT && magFL == ABSENT && magRR == ABSENT && magRL == PRESENT)
@@ -162,6 +232,14 @@ int lineTrack(int speed) {
 	if (magFR == ABSENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
 	{
 		printf("Sensor alignment: yaw CW\n");
+		if(yaw = 1)
+		{
+			//drive left side a bit faster
+		}
+		else
+		{
+			yaw = 1;
+		}
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
 	{
@@ -169,6 +247,7 @@ int lineTrack(int speed) {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
+		//translate to the left
 		printf("Sensor alignment: translated right\n");
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
