@@ -6,7 +6,7 @@ pi: 140008_client 140008_server_pi
 x86: 140008_client 140008_server_x86
 
 140008_client: 140008_client.o joystick
-	gcc -g 140008_client.c -o 140008_client 
+	gcc -g 140008_client.c joystick.c -o 140008_client 
 
 140008_server_pi: 140008_obj_pi procedures_pi
 	gcc -DRPI -g 140008_server.o procedures.o -o 140008_server $(PILIBS) $(PIINCLUDES)

@@ -18,17 +18,17 @@ long_line_column=72
 
 [files]
 current_page=0
-FILE_NAME_0=330;C;0;16;1;1;0;/usr/local/src/140008_agv/140008_client.c;0;3
-FILE_NAME_1=0;C;0;16;1;1;0;/usr/local/src/140008_agv/140008lib.h;0;3
-FILE_NAME_2=3250;C;0;16;1;1;0;/usr/local/src/140008_agv/140008_server.c;0;3
-FILE_NAME_3=2935;C;0;16;1;1;0;/usr/local/src/140008_agv/joystick.c;0;3
-FILE_NAME_4=0;C;0;16;1;1;0;/usr/local/src/140008_agv/joystick.h;0;3
-FILE_NAME_5=637;Make;0;16;1;1;0;/usr/local/src/140008_agv/Makefile;0;3
+FILE_NAME_0=4118;C;0;16;1;1;0;/usr/local/src/140008_agv/140008_client.c;0;3
+FILE_NAME_1=6396;C;0;16;1;1;0;/usr/local/src/140008_agv/140008_server.c;0;3
+FILE_NAME_2=0;C;0;16;1;1;0;/usr/local/src/140008_agv/140008lib.h;0;3
+FILE_NAME_3=1596;C;0;16;1;1;0;/usr/local/src/140008_agv/joystick.c;0;3
+FILE_NAME_4=1321;C;0;16;1;1;0;/usr/local/src/140008_agv/joystick.h;0;3
+FILE_NAME_5=281;Make;0;16;1;1;0;/usr/local/src/140008_agv/Makefile;0;3
 FILE_NAME_6=0;None;0;16;1;1;0;/usr/local/src/140008_agv/map.dat;0;3
 FILE_NAME_7=0;C;0;16;1;1;0;/usr/local/src/140008_agv/procedures.h;0;3
 FILE_NAME_8=0;Markdown;0;16;1;1;0;/usr/local/src/140008_agv/README.md;0;3
 FILE_NAME_9=0;C;0;16;1;1;0;/usr/local/src/140008_agv/robotMap.h;0;3
-FILE_NAME_10=0;C;0;16;1;1;0;/usr/local/src/140008_agv/procedures.c;0;3
+FILE_NAME_10=2795;C;0;16;1;1;0;/usr/local/src/140008_agv/procedures.c;0;3
 
 [VTE]
 last_dir=/home
