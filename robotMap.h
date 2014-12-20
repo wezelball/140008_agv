@@ -12,7 +12,7 @@
 
 #define DRIVE_FL_OFFSET 0 //Drive front left motor offset
 #define DRIVE_FR_OFFSET 0 //Drive front right motor offset
-#define DRIVE_RL_OFFSET 20 //Drive rear left motor offset
+#define DRIVE_RL_OFFSET 10 //Drive rear left motor offset
 #define DRIVE_RR_OFFSET 0 //Drive rear right motor offset
 
 // oops, i used this for safety relay - dlc
