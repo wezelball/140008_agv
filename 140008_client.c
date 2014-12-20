@@ -56,11 +56,11 @@ int main(int argc, char **argv) {
 	 * to fix that later
 	 *  
 	 */
-	fd = open_joystick(0);
+	/*fd = open_joystick(0);
 	if (fd < 0) {
 		printf("open failed.\n");
 		exit(1);
-	}
+	}*/
 
 	while(cont == 0)
 	{
@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
 			}
 		}
 	
-		rc = read_joystick_event(&jse);
+	/*	rc = read_joystick_event(&jse);
 		usleep(1000);
 		if (rc == 1) {
 			if (jse.type == 2 && jse.number == 0) {
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
 					joystick_x_axis, joystick_y_axis, joystick_z_axis, fire_pressed);
 		}
 		
-		/*
+	*/	/*
 		 *Check to see if we're killing the client
 		 */
 		if(strcmp(buf, "99\n") == 0)
