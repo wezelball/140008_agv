@@ -40,6 +40,7 @@ bool firstTimeTracking = true;
 // Now running under joystick control
 bool joystickControl = false;
 int lineTrackSpeed = 0; // the speed to run linetrack function at
+bool RFIDTracking = false; //whether the cart is currently RFID tracking
 /*
 * This is where the timing loop for the master clock is generated
 * it currently calls one control loop, but could be 
@@ -65,7 +66,14 @@ PI_THREAD (myThread)	{
 			timing = false;
 		}
 		if (lineTracking)
-			lineTrack(lineTrackSpeed);
+		{
+			lineTracking = lineTrack(lineTrackSpeed);
+			printf("line tracking \n");
+		}
+		if(RFIDTracking == true)
+		{
+			RFIDTracking = RFIDTrack();
+		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
 		 * so far, min. value seems to be 100000 - below that and 
@@ -361,12 +369,54 @@ int main(int argc, char **argv) {
 				strcpy(reply, "false\n");
 			}
 			break;
-		case 10:
-			PWMWrite(DRIVE_FR, comaddr);
-			PWMWrite(DRIVE_FL, comaddr);
-			PWMWrite(DRIVE_RR, comaddr);
-			PWMWrite(DRIVE_RL, comaddr);
+		case 10: //tank drive
+			if(comaddr == 0)
+			{
+				PWMWrite(DRIVE_FR, comval);
+				PWMWrite(DRIVE_FL, comval);
+				PWMWrite(DRIVE_RR, comval);
+				PWMWrite(DRIVE_RL, comval);
+				if(comval == NULL)
+				{
+					PWMWrite(DRIVE_FR, 0);
+					PWMWrite(DRIVE_FL, 0);
+					PWMWrite(DRIVE_RR, 0);
+					PWMWrite(DRIVE_RL, 0);
+				}
+			}
+			else if(comaddr == 90)
+			{
+				PWMWrite(DRIVE_FR, -comval);
+				PWMWrite(DRIVE_FL, comval);
+				PWMWrite(DRIVE_RR, comval);
+				PWMWrite(DRIVE_RL, -comval);
+			}
+			else if(comaddr == 180)
+			{
+				PWMWrite(DRIVE_FR, -comval);
+				PWMWrite(DRIVE_FL, -comval);
+				PWMWrite(DRIVE_RR, -comval);
+				PWMWrite(DRIVE_RL, -comval);
+			}
+			else if(comaddr == 270)
+			{
+				PWMWrite(DRIVE_FR, comval);
+				PWMWrite(DRIVE_FL, -comval);
+				PWMWrite(DRIVE_RR, -comval);
+				PWMWrite(DRIVE_RL, comval);
+			}
 			break;	
+		case 11: //RFID Control!
+			if(comaddr == 0)
+			{
+				RFIDTracking = false;
+			}
+			else
+			{
+				RFIDTracking = true;
+			}
+			
+			break;
 		case 99:	// quit
 			agvShutdown();
 			return(0);

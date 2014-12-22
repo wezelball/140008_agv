@@ -10,8 +10,9 @@ void bitWrite(int, int);	// abstracted bit write
 int bitRead(int);			// abstracted bit read
 int PWMWrite(int, int);	// abstracted PWM write
 int motorRamp(int, int, int); //motor speed ramp
-int lineTrack(int);
+bool lineTrack(int);
 void softStop(void);
 void eStop(void);
 int agvShutdown(void);
+void updateMotors(void);
 
