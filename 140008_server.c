@@ -40,7 +40,11 @@ bool firstTimeTracking = true;
 // Now running under joystick control
 bool joystickControl = false;
 int lineTrackSpeed = 0; // the speed to run linetrack function at
+bool sideLineTracking = false;
+int sideLineTrackSpeed = 0;
 bool RFIDTracking = false; //whether the cart is currently RFID tracking
+bool properAlignment = true;
+
 /*
 * This is where the timing loop for the master clock is generated
 * it currently calls one control loop, but could be 
@@ -70,9 +74,14 @@ PI_THREAD (myThread)	{
 			lineTracking = lineTrack(lineTrackSpeed);
 			printf("line tracking \n");
 		}
-		if(RFIDTracking == true)
+		if(sideLineTracking)
 		{
-			RFIDTracking = RFIDTrack();
+			sideLineTracking = sideLineTrack(sideLineTrackSpeed);
+			printf("Side line tracking\n");
+		}
+		if(properAlignment != true)
+		{
+			properAlignment = adjustAlignment();
 		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
@@ -97,9 +106,9 @@ int main(int argc, char **argv) {
 	char *hostaddrp; /* dotted decimal host addr string */
 	int optval; /* flag value for setsockopt */
 	int n; /* message byte size */
-	int command; /*command type for agv*/
-	int comaddr; /*addr for command to go*/
-	int comval; /*value of command*/
+	int command = 0; /*command type for agv*/
+	int comaddr = 0; /*addr for command to go*/
+	int comval = 0; /*value of command*/
 	char reply[MSGSIZE]; /*send reply to command*/
 	fd_set fds; /*not 100% what this line does, but is nec*/
 	bool I_AM_PI; /* true if raspberry pi */
@@ -376,7 +385,7 @@ int main(int argc, char **argv) {
 				PWMWrite(DRIVE_FL, comval);
 				PWMWrite(DRIVE_RR, comval);
 				PWMWrite(DRIVE_RL, comval);
-				if(comval == NULL)
+				if(comval == 0)
 				{
 					PWMWrite(DRIVE_FR, 0);
 					PWMWrite(DRIVE_FL, 0);
@@ -386,10 +395,10 @@ int main(int argc, char **argv) {
 			}
 			else if(comaddr == 90)
 			{
-				PWMWrite(DRIVE_FR, -comval);
-				PWMWrite(DRIVE_FL, comval);
-				PWMWrite(DRIVE_RR, comval);
-				PWMWrite(DRIVE_RL, -comval);
+				PWMWrite(DRIVE_FR, comval);
+				PWMWrite(DRIVE_FL, -comval);
+				PWMWrite(DRIVE_RR, -comval);
+				PWMWrite(DRIVE_RL, comval);
 			}
 			else if(comaddr == 180)
 			{
@@ -400,22 +409,62 @@ int main(int argc, char **argv) {
 			}
 			else if(comaddr == 270)
 			{
-				PWMWrite(DRIVE_FR, comval);
-				PWMWrite(DRIVE_FL, -comval);
-				PWMWrite(DRIVE_RR, -comval);
-				PWMWrite(DRIVE_RL, comval);
+				PWMWrite(DRIVE_FR, -comval);
+				PWMWrite(DRIVE_FL, comval);
+				PWMWrite(DRIVE_RR, comval);
+				PWMWrite(DRIVE_RL, -comval);
 			}
+			strcpy(reply, "true\n");
 			break;	
 		case 11: //RFID Control!
 			if(comaddr == 0)
 			{
 				RFIDTracking = false;
+				properAlignment = checkAlignment();
 			}
 			else
 			{
 				RFIDTracking = true;
+				properAlignment = false;
 			}
 			
+			break;
+		case 12: //adjust alignment
+			if(comaddr == 1)
+			{
+				printf("Made it to case 12 comaddr = 1\n");
+				properAlignment = false;
+				strcpy(reply, "true\n");
+			}
+			else
+			{
+				printf("Made it to case 12 else statement\n");
+				properAlignment = true;
+				softStop();
+				strcpy(reply, "false\n");
+			}
+			break;
+		case 13: //turns
+			PWMWrite(DRIVE_FR, -comaddr*comval);
+			PWMWrite(DRIVE_FL, comaddr*comval);
+			PWMWrite(DRIVE_RR, -comaddr*comval);
+			PWMWrite(DRIVE_RL, comaddr*comval);
+			break;
+		case 14:	//side line track
+			if (comaddr == 1) {
+				sideLineTracking = true;
+				sideLineTrackSpeed = comval;
+				strcpy(reply, "true\n");
+			}
+			else
+			{
+				sideLineTracking = false;
+				firstTimeTracking = true;
+				sideLineTrackSpeed = 0;
+				// set motors to zero speed
+				softStop();
+				strcpy(reply, "false\n");
+			}
 			break;
 		case 99:	// quit
 			agvShutdown();

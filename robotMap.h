@@ -22,8 +22,10 @@
 #define MAG_RL 21 	//Magnetic sensor rear left, connect to I1, gpio 5, J8 pin 29
 #define MAG_FL 22 	//Magnetic sensor front left, connect to I2, gpio 6, J8 pin 31
 #define MAG_RR 23 	//Magnetic sensor rear right, connect to I7, gpio 13, J8 pin 33
-#define MAG_SL 24 	//Magnetic sensor side left, connect to I8, gpio 19, J8 pin 35
-#define MAG_SR 3	//Magnetic sensor side right, connect to I6, gpio 22, J8 pin 15
+#define MAG_SRL 24 	//Magnetic sensor side rear left, connect to I8, gpio 19, J8 pin 35
+#define MAG_SRR 3	//Magnetic sensor side rear right, connect to I6, gpio 22, J8 pin 15
+#define MAG_SFR 2	//Magnetic sensor side front right, connect to I5, gpio 27, J8 pin 13
+#define MAG_SFL 0	//Magnetic sensor side front left, connect to I4, gpio 17, J8 pin 11
  
 #define BATT_CURR 999 //Reads battery current, connect to ain, PORTNO UNKNOWN ATM
 #define BATT_VOLT 999 //Reads battery current, connect to ain, PORTNO UNKNOWN ATM

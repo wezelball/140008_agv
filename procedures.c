@@ -159,15 +159,11 @@ int agvShutdown(void) {
 
 /*
  *  Call this procedure if the tracking flag is set to true
- * 	Return a value of ? if successful
+ * 	Return a value of true if successful
  */
 
 bool lineTrack(int speed) {
 	// mag sensor values read once per loop iteration
-	if(lineTracking)
-	{
-		printf("line tracking true in proc\n");
-	}
 	int magFL, magFR, magRL, magRR; 
 	int FLmod, FRmod, RLmod, RRmod, tester;
 	int fwd = 1;
@@ -271,9 +267,12 @@ bool lineTrack(int speed) {
 	if (magFR == PRESENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
 	{
 		printf("Sensor alignment: yaw unknown both rear sensors off\n");
-		if(fwd == -1)
+		if(yaw != 0)
 		{
-			lineError = -1;
+			if(yawCounter < abs(speed))
+			{
+				yawCounter = yawCounter + 1 + (abs(speed)/30);
+			}
 		}
 	}
 	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
@@ -403,9 +402,12 @@ bool lineTrack(int speed) {
 	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
 	{
 		printf("Sensor alignment: yaw unknown both front sensors off\n");
-		if(fwd == 1)
+		if(yaw != 0)
 		{
-			lineError = 1;
+			if(yawCounter < abs(speed))
+			{
+				yawCounter = yawCounter + 1 + (abs(speed)/30);
+			}
 		}
 	}
 	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
@@ -553,15 +555,404 @@ bool lineTrack(int speed) {
 	}
 	prevLineSpeed = speed;
 	updateMotors();
-	if(lineTracking == true)
+}
+
+
+bool sideLineTrack(int speed) {
+	// mag sensor values read once per loop iteration
+	int magFL, magFR, magRL, magRR; 
+	int FLmod, FRmod, RLmod, RRmod, tester;
+	int fwd = 1;
+	if(prevLineSpeed != speed)
 	{
-		printf("line tracking true at end of proc\n");
+		yawCounter = 0;
+		yaw = 0;
+		translateCounter = 0;
+		translated = 0;
+		lineError = 0;
+	}
+	if (firstTimeTracking)
+	{
+		printf("Initializing motors\n");
+		bitWrite(RELAY_ENABLE, 1);
+		PWMWrite(DRIVE_FR, speed + DRIVE_FR_OFFSET);
+		PWMWrite(DRIVE_FL, speed + DRIVE_FL_OFFSET);
+		PWMWrite(DRIVE_RR, speed + DRIVE_RR_OFFSET);
+		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
+		
+		firstTimeTracking = false;
+	}
+	if(speed < 0)
+	{
+		fwd = -1;
+		printf("I think we're going reverse because fwd = %d\n", fwd);
 	}
 	else
 	{
-		printf("line tracking false at end of proc\n");
+		printf("I think we're going forwards because fwd = %d\n", fwd);
 	}
+	// Just read the sensors once per loop
+	if(fwd == 1)
+	{
+		magFL = bitRead(MAG_SFR);
+		magFR = bitRead(MAG_SRR);
+		magRL = bitRead(MAG_SFR);
+		magRR = bitRead(MAG_SRL);
+	}
+	else
+	{
+		magRR = bitRead(MAG_SFR);
+		magRL = bitRead(MAG_SRR);
+		magFR = bitRead(MAG_SFL);
+		magFL = bitRead(MAG_SRL);
+	}
+
+	/*
+	*  There are 16 different cases for sensors possibilities
+	* 
+	* 
+	*/
+	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: proper\n");
+		if(lineError != 0)
+		{
+			printf("error fixed\n");
+			lineError = 0;
+		}
+		if(yaw != 0)
+		{
+			printf("Yaw corrected\n");
+			yaw = 0;
+			yawCounter = 0;
+		}
+		if(translated != 0)
+		{
+			printf("Translation Corrected\n");
+			translated = 0;
+			translateCounter = 0;
+			
+		}
+	}
+	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw unknown both rear sensors off\n");
+		if(yaw != 0)
+		{
+			if(yawCounter < abs(speed))
+			{
+				yawCounter = yawCounter + 1 + (abs(speed)/30);
+			}
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: translated left\n");
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != -1)
+		{
+			translated = -1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CW translated left\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != -1)
+		{
+			translated = -1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		//translate to the left
+		printf("Sensor alignment: translated right\n");
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != 1)
+		{
+			translated = 1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CCW translated right\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != 1)
+		{
+			translated = 1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw unknown both front sensors off\n");
+		if(yaw != 0)
+		{
+			if(yawCounter < abs(speed))
+			{
+				yawCounter = yawCounter + 1 + (abs(speed)/30);
+			}
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CCW translated left\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != -1)
+		{
+			translated = -1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CW translated right\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != 1)
+		{
+			translated = 1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: All sensors off\n");
+		lineError = 1;
+		softStop();
+		return false;
+	}
+	if(fwd == 1)
+	{
+		FRmod = yawCounter*yaw - translateCounter*translated;
+		FLmod = -1*yawCounter*yaw + translateCounter*translated;
+		RRmod = yawCounter*yaw + translateCounter*translated;
+		RLmod = -1*yawCounter*yaw - translateCounter*translated;
+		printf("driving forward! and fwd = %d\n", fwd);
+		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
+		tester = FRmod;
+		if(FLmod < tester)
+		{
+		tester = FLmod;
+		}
+		if(RRmod < tester)
+		{
+			tester = RRmod;
+		}
+		if(RLmod < tester)
+		{	
+			tester = RLmod;
+		}
+		if(tester < 0)
+		{
+			FRmod = FRmod + tester;
+			FLmod = FLmod + tester;
+			RRmod = RRmod + tester;
+			RLmod = RLmod + tester;
+		}
+		if(lineError != 0)
+		{
+			printf("lineError!\n");
+			PWMWrite(DRIVE_FR, 0);
+			PWMWrite(DRIVE_FL, 0);
+			PWMWrite(DRIVE_RR, 0);	
+			PWMWrite(DRIVE_RL, 0);
+		}
+		else
+		{
+			printf("driving away\n");
+			motorArray[DRIVE_RR][1] = -1*(speed + DRIVE_FR_OFFSET + FRmod);
+			motorArray[DRIVE_FR][1] = speed + DRIVE_FL_OFFSET + FLmod;
+			motorArray[DRIVE_RL][1] = speed + DRIVE_RR_OFFSET + RRmod;
+			motorArray[DRIVE_FL][1] = -1*(speed + DRIVE_RL_OFFSET + RLmod);
+		}
+	}
+	else
+	{
+		RLmod = yawCounter*yaw - translateCounter*translated;
+		RRmod = -1*yawCounter*yaw + translateCounter*translated;
+		FLmod = yawCounter*yaw + translateCounter*translated;
+		FRmod = -1*yawCounter*yaw - translateCounter*translated;
+		printf("driving reverse!\n");
+		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
+		tester = FRmod;
+		if(FLmod > tester)
+		{
+			tester = FLmod;
+		}
+		if(RRmod > tester)
+		{
+			tester = RRmod;
+		}
+		if(RLmod > tester)
+		{	
+			tester = RLmod;
+		}
+		if(tester > 0)
+		{
+			FRmod = FRmod - tester;
+			FLmod = FLmod - tester;
+			RRmod = RRmod - tester;
+			RLmod = RLmod - tester;
+		}
+		if(lineError != 0)
+		{
+			printf("lineError!\n");
+			PWMWrite(DRIVE_FR, 0);
+			PWMWrite(DRIVE_FL, 0);
+			PWMWrite(DRIVE_RR, 0);	
+			PWMWrite(DRIVE_RL, 0);
+		}
+		else
+		{
+			
+			printf("driving away\n");
+			motorArray[DRIVE_RR][1] = -1*(speed - DRIVE_FR_OFFSET - FRmod);
+			motorArray[DRIVE_FR][1] = speed - DRIVE_FL_OFFSET - FLmod;
+			motorArray[DRIVE_RL][1] = speed - DRIVE_RR_OFFSET - RRmod;
+			motorArray[DRIVE_FL][1] = -1*(speed - DRIVE_RL_OFFSET - RLmod);
+		}
+	}
+	prevLineSpeed = speed;
+	updateMotors();
 }
+
 
 bool RFIDTrack () {
 	lineTrack(40);
@@ -621,4 +1012,357 @@ void updateMotors() {
 		}
 	}
 	printf("finished updating motors\n");
+}
+
+bool checkAlignment() {
+	int magFL, magFR, magRR, magRL;
+	magFL = bitRead(MAG_FL);
+	magFR = bitRead(MAG_FR);
+	magRL = bitRead(MAG_RL);
+	magRR = bitRead(MAG_RR);
+	if(magFL == PRESENT && magFR == PRESENT && magRL == PRESENT && magRR == PRESENT)
+	{
+		return true;
+		softStop();
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool adjustAlignment () {
+	int speed = 30;
+	// mag sensor values read once per loop iteration
+	int magFL, magFR, magRL, magRR; 
+	int FLmod, FRmod, RLmod, RRmod, tester;
+	int fwd = 1;
+	int parallelError = 0;
+	if(prevLineSpeed != speed)
+	{
+		yawCounter = 0;
+		yaw = 0;
+		translateCounter = 0;
+		translated = 0;
+		lineError = 0;
+	}
+	if (firstTimeTracking)
+	{
+		printf("Initializing motors\n");
+		bitWrite(RELAY_ENABLE, 1);
+		PWMWrite(DRIVE_FR, speed + DRIVE_FR_OFFSET);
+		PWMWrite(DRIVE_FL, speed + DRIVE_FL_OFFSET);
+		PWMWrite(DRIVE_RR, speed + DRIVE_RR_OFFSET);
+		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
+		
+		firstTimeTracking = false;
+	}
+	if(speed < 0)
+	{
+		fwd = -1;
+		printf("I think we're going reverse because fwd = %d\n", fwd);
+	}
+	else
+	{
+		printf("I think we're going forwards because fwd = %d\n", fwd);
+	}
+	// Just read the sensors once per loop
+	if(fwd == 1)
+	{
+		magFL = bitRead(MAG_FL);
+		magFR = bitRead(MAG_FR);
+		magRL = bitRead(MAG_RL);
+		magRR = bitRead(MAG_RR);
+	}
+	else
+	{
+		magRR = bitRead(MAG_FL);
+		magRL = bitRead(MAG_FR);
+		magFR = bitRead(MAG_RL);
+		magFL = bitRead(MAG_RR);
+	}
+
+	/*
+	*  There are 16 different cases for sensors possibilities
+	* 
+	* 
+	*/
+	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: proper\n");
+		if(lineError != 0)
+		{
+			printf("error fixed\n");
+			lineError = 0;
+		}
+		if(yaw != 0)
+		{
+			printf("Yaw corrected\n");
+			yaw = 0;
+			yawCounter = 0;
+		}
+		if(translated != 0)
+		{
+			printf("Translation Corrected\n");
+			translated = 0;
+			translateCounter = 0;
+			
+		}
+	}
+	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw unknown both rear sensors off\n");
+		if(fwd == -1)
+		{
+			lineError = -1;
+		}
+		parallelError = 1;
+		printf("no this is parallelError!: %d\n", parallelError);
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: translated left\n");
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != -1)
+		{
+			translated = -1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == PRESENT && magFL == ABSENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CW translated left\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != -1)
+		{
+			translated = -1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CCW\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		//translate to the left
+		printf("Sensor alignment: translated right\n");
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != 1)
+		{
+			translated = 1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CCW translated right\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != 1)
+		{
+			translated = 1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw unknown both front sensors off\n");
+		if(fwd == 1)
+		{
+			lineError = 1;
+		}
+		parallelError = -1;
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: yaw CCW translated left\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != -1)
+		{
+			yaw = -1;
+			yawCounter = 0;
+		}
+
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != -1)
+		{
+			translated = -1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == ABSENT && magRL == PRESENT)
+	{
+		printf("Sensor alignment: yaw CW translated right\n");
+		if(yawCounter < abs(speed))
+		{
+			yawCounter = yawCounter + 1 + (abs(speed)/30);
+		} 
+		if(yaw != 1)
+		{
+			yaw = 1;
+			yawCounter = 0;
+		}
+		if(translateCounter < abs(speed))
+		{
+			translateCounter = translateCounter + 1 + (abs(speed)/30);
+		} 
+		if(translated != 1)
+		{
+			translated = 1;
+			translateCounter = 0;
+		}
+	}
+	if (magFR == ABSENT && magFL == ABSENT && magRR == ABSENT && magRL == ABSENT)
+	{
+		printf("Sensor alignment: All sensors off\n");
+		lineError = 1;
+		softStop();
+		return false;
+	}
+	FRmod = yawCounter*yaw + translateCounter*translated;
+	FLmod = -1*yawCounter*yaw - translateCounter*translated;
+	RRmod = yawCounter*yaw - translateCounter*translated;
+	RLmod = -1*yawCounter*yaw + translateCounter*translated;
+	printf("driving forward! and fwd = %d\n", fwd);
+	printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
+	if(lineError != 0)
+	{
+		printf("lineError!\n");
+		PWMWrite(DRIVE_FR, 0);
+		PWMWrite(DRIVE_FL, 0);
+		PWMWrite(DRIVE_RR, 0);	
+		PWMWrite(DRIVE_RL, 0);
+	}
+	else
+	{
+		printf("driving away\n");
+		if(parallelError == 0)
+		{
+			motorArray[DRIVE_FR][1] = DRIVE_FR_OFFSET + FRmod;
+			motorArray[DRIVE_FL][1] = DRIVE_FL_OFFSET + FLmod;
+			motorArray[DRIVE_RR][1] = DRIVE_RR_OFFSET + RRmod;
+			motorArray[DRIVE_RL][1] = DRIVE_RL_OFFSET + RLmod;
+		}
+		else
+		{
+			motorArray[DRIVE_FR][1] = parallelError*speed;
+			motorArray[DRIVE_FL][1] = parallelError*speed;
+			motorArray[DRIVE_RR][1] = parallelError*speed;
+			motorArray[DRIVE_RL][1] = parallelError*speed;
+		}
+	}
+	prevLineSpeed = speed;
+	updateMotors();
+	return checkAlignment();
 }

@@ -15,10 +15,10 @@ x86: 140008_client 140008_server_x86
 	gcc -DNOPI -g 140008_server.o procedures.o -o 140008_server
 
 140008_obj_pi: 140008_server.c
-	gcc -DRPI -c 140008_server.c $(PILIBS) $(PIINCLUDES)
+	gcc -g -DRPI -c 140008_server.c $(PILIBS) $(PIINCLUDES)
 
 140008_obj_x86: 140008_server.c
-	gcc -DNOPI -c 140008_server.c
+	gcc -g -DNOPI -c 140008_server.c
 	
 procedures_pi: procedures.o
 	gcc -DRPI -g -c procedures.c
