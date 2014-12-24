@@ -23,6 +23,8 @@
 /* prototype for thread routine */
 void joystick_update ( void *ptr );
 
+void heartbeatCheck (void *ptr );
+
 /* 
  * struct to hold data to be passed to a thread
  * this shows how multiple data items can be passed to a thread
@@ -33,6 +35,7 @@ typedef struct struct_thdata
     int thread_no;
     char message[100];
 } thdata;
+
 
 /* Global variables for thread to access */
 
@@ -69,20 +72,21 @@ int main(int argc, char **argv) {
 	int command; /*command type for agv*/
 	int comaddr; /*addr for command to go*/
 	int comval; /*value of command*/
-	//bool fire_pressed = false;
+
 	// true only if an event we are using is activated
 	bool relevant = true;
-	//int joystick_x_axis;
-	//int joystick_y_axis;
-	//int joystick_z_axis;
+	
 	int fd, rc;
 	int done = 0;
 
 	pthread_t joyThread;
+	pthread_t heartbeat_thread;
 	thdata joyData; // this is a structure we can pass to the thread
-
+	thdata heartData;
+	
 	// Create the joystick polling thread
 	pthread_create(&joyThread, NULL, (void *) &joystick_update, (void *) &joyData);
+	pthread_create(&heartbeat_thread, NULL, (void *) &heartbeatCheck, (void *) &heartData);
 		
 	// FIXME If no joystick, don't just die
 	fd = open_joystick(0);
@@ -177,7 +181,14 @@ int main(int argc, char **argv) {
 			printf("Command: %d\n", command);
 		}
 		else
+		{
+			if(joystickControl == true)
+			{
+				sprintf(buf, "9 0\n");
+				printf("turning wheels off\n");
+			}
 			joystickControl = false;
+		}
 	
 		/*
 		 *Check to see if we're killing the client
@@ -256,4 +267,14 @@ void joystick_update ( void *ptr )
 					//joystick_x, joystick_y, joystick_z, fire_pressed);
 		}   
 	}
+}
+
+void heartbeatCheck (void *ptr) {
+	thdata *hdata;            
+    hdata = (thdata *) ptr;  /* type cast to a pointer to thdata */
+    while(true)
+    {
+		 
+		 usleep(500000);
+	 }
 }
