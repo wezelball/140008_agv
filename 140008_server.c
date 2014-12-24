@@ -102,13 +102,14 @@ int main(int argc, char **argv) {
 	struct hostent *hostp; /* client host info */
 	char buf[BUFSIZE]; /* message buffer */
 	char input[BUFSIZE]; /*modifiable copy of buf*/
-	char* param[3]; /*holds seperated values*/
+	char* param[4]; /*holds seperated values*/
 	char *hostaddrp; /* dotted decimal host addr string */
 	int optval; /* flag value for setsockopt */
 	int n; /* message byte size */
 	int command = 0; /*command type for agv*/
 	int comaddr = 0; /*addr for command to go*/
 	int comval = 0; /*value of command*/
+	int comaux = 0; /* auxiliary parameter for joystick control */
 	char reply[MSGSIZE]; /*send reply to command*/
 	fd_set fds; /*not 100% what this line does, but is nec*/
 	bool I_AM_PI; /* true if raspberry pi */
@@ -250,7 +251,8 @@ int main(int argc, char **argv) {
 		//most useful for parsing a string
 		param[0] = strtok(buf, " ");
 		param[1] = strtok(NULL, " ");
-		param[2] = strtok(NULL, "\0");
+		param[2] = strtok(NULL," ");
+		param[3] = strtok(NULL, "\0");
 
 
 		// The command is always the first parameter
@@ -269,6 +271,9 @@ int main(int argc, char **argv) {
 		if (param[2] != NULL)	{
 			comval = atoi(param[2]);
 		}
+		// do we have a 4th parameter (aux value)
+		if (param[3] != NULL)
+			comaux = atoi(param[3]);
 		
 		// Branch according to command number
 		switch (command) {
@@ -364,19 +369,12 @@ int main(int argc, char **argv) {
 			}
 			break;
 			
-		case 9:	// enable/disable joystick control
-			if (comaddr == 1) {
-				joystickControl = true;
-				printf("Joystick control set\n");
-				strcpy(reply, "true\n");
-			}
-			else
-			{
-				joystickControl = false;
-				softStop();
-				printf("Joystick control cleared\n");
-				strcpy(reply, "false\n");
-			}
+		case 9:	// joystick enable/disable
+			if (comaddr == 1)
+				printf("Joystick control enabled\n");
+			else if (comaddr == 0)
+				printf("Joystick control disabled\n");
+			strcpy(reply, "true\n");			
 			break;
 		case 10: //tank drive
 			if(comaddr == 0)
@@ -465,6 +463,17 @@ int main(int argc, char **argv) {
 				softStop();
 				strcpy(reply, "false\n");
 			}
+			break;
+		case 15:	// joystick data
+			//printf("Joystick x: %d\n",comaddr);
+			//printf("Joystick y: %d\n",comval);
+			//printf("Joystick z: %d\n",comaux);
+			PWMWrite(DRIVE_FR, comval);
+			PWMWrite(DRIVE_FL, comval);
+			PWMWrite(DRIVE_RR, comval);
+			PWMWrite(DRIVE_RL, comval);
+			
+			strcpy(reply, "true\n");			
 			break;
 		case 99:	// quit
 			agvShutdown();
