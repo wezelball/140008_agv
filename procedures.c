@@ -186,15 +186,6 @@ bool lineTrack(int speed) {
 		
 		firstTimeTracking = false;
 	}
-	if(speed < 0)
-	{
-		fwd = -1;
-		printf("I think we're going reverse because fwd = %d\n", fwd);
-	}
-	else
-	{
-		printf("I think we're going forwards because fwd = %d\n", fwd);
-	}
 	// Just read the sensors once per loop
 	if(fwd == 1)
 	{
@@ -468,7 +459,6 @@ bool lineTrack(int speed) {
 		FLmod = -1*yawCounter*yaw - translateCounter*translated;
 		RRmod = yawCounter*yaw - translateCounter*translated;
 		RLmod = -1*yawCounter*yaw + translateCounter*translated;
-		printf("driving forward! and fwd = %d\n", fwd);
 		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
 		tester = FRmod;
 		if(FLmod < tester)
@@ -513,7 +503,6 @@ bool lineTrack(int speed) {
 		RRmod = -1*yawCounter*yaw - translateCounter*translated;
 		FLmod = yawCounter*yaw - translateCounter*translated;
 		FRmod = -1*yawCounter*yaw + translateCounter*translated;
-		printf("driving reverse!\n");
 		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
 		tester = FRmod;
 		if(FLmod > tester)
@@ -545,8 +534,6 @@ bool lineTrack(int speed) {
 		}
 		else
 		{
-			
-			printf("driving away\n");
 			motorArray[DRIVE_FR][1] = speed - DRIVE_FR_OFFSET - FRmod;
 			motorArray[DRIVE_FL][1] = speed - DRIVE_FL_OFFSET - FLmod;
 			motorArray[DRIVE_RR][1] = speed - DRIVE_RR_OFFSET - RRmod;
@@ -582,21 +569,12 @@ bool sideLineTrack(int speed) {
 		
 		firstTimeTracking = false;
 	}
-	if(speed < 0)
-	{
-		fwd = -1;
-		printf("I think we're going reverse because fwd = %d\n", fwd);
-	}
-	else
-	{
-		printf("I think we're going forwards because fwd = %d\n", fwd);
-	}
 	// Just read the sensors once per loop
 	if(fwd == 1)
 	{
 		magFL = bitRead(MAG_SFR);
 		magFR = bitRead(MAG_SRR);
-		magRL = bitRead(MAG_SFR);
+		magRL = bitRead(MAG_SFL);
 		magRR = bitRead(MAG_SRL);
 	}
 	else
@@ -860,11 +838,10 @@ bool sideLineTrack(int speed) {
 	}
 	if(fwd == 1)
 	{
-		FRmod = yawCounter*yaw - translateCounter*translated;
-		FLmod = -1*yawCounter*yaw + translateCounter*translated;
-		RRmod = yawCounter*yaw + translateCounter*translated;
-		RLmod = -1*yawCounter*yaw - translateCounter*translated;
-		printf("driving forward! and fwd = %d\n", fwd);
+		FRmod = -1*yawCounter*yaw - translateCounter*translated;
+		FLmod = yawCounter*yaw + translateCounter*translated;
+		RRmod = -1*yawCounter*yaw + translateCounter*translated;
+		RLmod = yawCounter*yaw - translateCounter*translated;
 		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
 		tester = FRmod;
 		if(FLmod < tester)
@@ -896,7 +873,6 @@ bool sideLineTrack(int speed) {
 		}
 		else
 		{
-			printf("driving away\n");
 			motorArray[DRIVE_RR][1] = -1*(speed + DRIVE_FR_OFFSET + FRmod);
 			motorArray[DRIVE_FR][1] = speed + DRIVE_FL_OFFSET + FLmod;
 			motorArray[DRIVE_RL][1] = speed + DRIVE_RR_OFFSET + RRmod;
@@ -909,7 +885,6 @@ bool sideLineTrack(int speed) {
 		RRmod = -1*yawCounter*yaw + translateCounter*translated;
 		FLmod = yawCounter*yaw + translateCounter*translated;
 		FRmod = -1*yawCounter*yaw - translateCounter*translated;
-		printf("driving reverse!\n");
 		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
 		tester = FRmod;
 		if(FLmod > tester)
@@ -941,8 +916,6 @@ bool sideLineTrack(int speed) {
 		}
 		else
 		{
-			
-			printf("driving away\n");
 			motorArray[DRIVE_RR][1] = -1*(speed - DRIVE_FR_OFFSET - FRmod);
 			motorArray[DRIVE_FR][1] = speed - DRIVE_FL_OFFSET - FLmod;
 			motorArray[DRIVE_RL][1] = speed - DRIVE_RR_OFFSET - RRmod;
@@ -1009,6 +982,7 @@ void updateMotors() {
 		while(i < 32)
 		{
 			motorArray[i][0] = 0;
+			i++;
 		}
 	}
 	printf("finished updating motors\n");
@@ -1056,15 +1030,6 @@ bool adjustAlignment () {
 		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
 		
 		firstTimeTracking = false;
-	}
-	if(speed < 0)
-	{
-		fwd = -1;
-		printf("I think we're going reverse because fwd = %d\n", fwd);
-	}
-	else
-	{
-		printf("I think we're going forwards because fwd = %d\n", fwd);
 	}
 	// Just read the sensors once per loop
 	if(fwd == 1)
@@ -1334,7 +1299,6 @@ bool adjustAlignment () {
 	FLmod = -1*yawCounter*yaw - translateCounter*translated;
 	RRmod = yawCounter*yaw - translateCounter*translated;
 	RLmod = -1*yawCounter*yaw + translateCounter*translated;
-	printf("driving forward! and fwd = %d\n", fwd);
 	printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
 	if(lineError != 0)
 	{
@@ -1346,7 +1310,6 @@ bool adjustAlignment () {
 	}
 	else
 	{
-		printf("driving away\n");
 		if(parallelError == 0)
 		{
 			motorArray[DRIVE_FR][1] = DRIVE_FR_OFFSET + FRmod;

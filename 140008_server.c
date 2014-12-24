@@ -44,30 +44,31 @@ bool sideLineTracking = false;
 int sideLineTrackSpeed = 0;
 bool RFIDTracking = false; //whether the cart is currently RFID tracking
 bool properAlignment = true;
-
+clock_t joyStartClock;
 /*
 * This is where the timing loop for the master clock is generated
 * it currently calls one control loop, but could be 
 * extended in the future
 */
 PI_THREAD (myThread)	{
-	clock_t startClock, finishClock; // for checking elapsed time
-	double elapsedTime; 	// time in seconds for master clock
-	bool timing = false;	// timing flag 
-	float masterLoopTime = 0.100;	// Control loop time
+	clock_t joyFinishClock; // for checking elapsed time
+	double joyElapsedTime; 	// time in seconds for master clock
+	float joyMasterLoopTime = 0.150;	// Control loop time
 	int i_thread = 0;	// test variable
 	printf("hello!\n");
+	joyStartClock = clock();
 	while(true)
 	{
-		if (timing == false){
-			startClock = clock();
-			timing = true;
-		}
-		finishClock = clock();
-		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
-		if (elapsedTime >= masterLoopTime) {
+		joyFinishClock = clock();
+		joyElapsedTime = ((double)(joyFinishClock - joyStartClock)/CLOCKS_PER_SEC);
+		if (joyElapsedTime >= joyMasterLoopTime) {
 			// The usleep() command below screws this up
-			timing = false;
+			if(joystickControl == true)
+			{
+				softStop();
+				joystickControl = false;
+				printf("lost connection\n");
+			}
 		}
 		if (lineTracking)
 		{
@@ -85,7 +86,7 @@ PI_THREAD (myThread)	{
 		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
-		 * so far, min. value seems to be 100000 - below that and 
+		 * so far, min. value seems to be 100,000 - below that and 
 		 * CPU gobble occurs
 		 */
 		 usleep(100000); 
@@ -113,7 +114,9 @@ int main(int argc, char **argv) {
 	char reply[MSGSIZE]; /*send reply to command*/
 	fd_set fds; /*not 100% what this line does, but is nec*/
 	bool I_AM_PI; /* true if raspberry pi */
-
+	signed int joyX, joyY, joyZ; /* Joystick X, Y, Z components */
+	
+	
 	/* Determine if I am a Raspberry Pi*/
 	#ifdef NOPI
 		I_AM_PI = false;
@@ -371,9 +374,16 @@ int main(int argc, char **argv) {
 			
 		case 9:	// joystick enable/disable
 			if (comaddr == 1)
+			{
 				printf("Joystick control enabled\n");
+				joystickControl = true;
+			}
 			else if (comaddr == 0)
+			{
 				printf("Joystick control disabled\n");
+				softStop();
+				joystickControl = false;
+			}
 			strcpy(reply, "true\n");			
 			break;
 		case 10: //tank drive
@@ -430,13 +440,11 @@ int main(int argc, char **argv) {
 		case 12: //adjust alignment
 			if(comaddr == 1)
 			{
-				printf("Made it to case 12 comaddr = 1\n");
 				properAlignment = false;
 				strcpy(reply, "true\n");
 			}
 			else
 			{
-				printf("Made it to case 12 else statement\n");
 				properAlignment = true;
 				softStop();
 				strcpy(reply, "false\n");
@@ -468,11 +476,14 @@ int main(int argc, char **argv) {
 			//printf("Joystick x: %d\n",comaddr);
 			//printf("Joystick y: %d\n",comval);
 			//printf("Joystick z: %d\n",comaux);
-			PWMWrite(DRIVE_FR, comval);
-			PWMWrite(DRIVE_FL, comval);
-			PWMWrite(DRIVE_RR, comval);
-			PWMWrite(DRIVE_RL, comval);
-			
+			joyX = comaddr;
+			joyY = comval;
+			joyZ = comaux;
+			PWMWrite(DRIVE_FR, joyY - joyX - joyZ);
+			PWMWrite(DRIVE_FL, joyY + joyZ + joyX);
+			PWMWrite(DRIVE_RR, joyY - joyZ + joyX);
+			PWMWrite(DRIVE_RL, joyY + joyZ - joyX);
+			joyStartClock = clock();
 			strcpy(reply, "true\n");			
 			break;
 		case 99:	// quit
