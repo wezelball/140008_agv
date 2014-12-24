@@ -115,55 +115,10 @@ void set_joystick_x_axis(int axis)
 	joystick_x_axis = axis;
 }
 
-
-#if 0
-/* a little test program */
-int main(int argc, char *argv[])
+/* Scale the joystick to values liked by server,
+ * which are currently -100 to 100
+ */ 
+int scale_joystick(signed int value)
 {
-	int fd, rc;
-	int done = 0;
-
-	struct js_event jse;
-
-	fd = open_joystick(0);
-	if (fd < 0) {
-		printf("open failed.\n");
-		exit(1);
-	}
-
-	while (!done) {
-		rc = read_joystick_event(&jse);
-		usleep(1000);
-		if (rc == 1) {
-			//printf("Event: time %8u, value %8hd, type: %3u, axis/button: %u\n", 
-				//jse.time, jse.value, jse.type, jse.number);
-			if (jse.type == 2 && jse.number == 0) {
-				joystick_x_axis = jse.value;
-				relevant = true;
-			}
-			else if (jse.type == 2 && jse.number == 1) {
-				joystick_y_axis = jse.value;
-				relevant = true;
-			}
-			else if (jse.type == 2 && jse.number == 3) {
-				joystick_z_axis = jse.value;
-				relevant = true;
-			}
-			else if (jse.value == 1 && jse.type == 1 && jse.number == 0) {
-				fire_pressed = true;
-				relevant = true;
-			}
-			else if (jse.value == 0 && jse.type == 1 && jse.number == 0) {
-				fire_pressed = false;
-				relevant = true;
-			}
-			else
-				relevant = false;
-				
-			if (relevant)
-				printf("X: %8hd, Y: %8hd, Z: %8hd, Fire: %d\n",
-					joystick_x_axis, joystick_y_axis, joystick_z_axis, fire_pressed);
-		}
-	}
+	return (signed int) ((long)(value * 200)/(long)65534);  
 }
-#endif
