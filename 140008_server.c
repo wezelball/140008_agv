@@ -92,14 +92,14 @@ PI_THREAD (myThread)	{
 		{
 			properAlignment = adjustAlignment();
 		}
-		printf("trackAndTurn equals: %d\n", trackAndTurn);
+		//printf("trackAndTurn equals: %d\n", trackAndTurn);
 		if(trackAndTurn > 0)
 		{
 			switch(trackAndTurn) {
 			case 1:
 				//follow line until side sensors read true
 				printf("line tracking!\n");
-				lineTrack(30);
+				lineTrack(27);
 				if(getSideSensorsPresent() >= 2)
 				{
 					trackAndTurn++;
@@ -140,14 +140,15 @@ PI_THREAD (myThread)	{
 					softStop();
 					printf("alignment set and beginning turn\n");
 					usleep(500000);
-					motorArray[DRIVE_FL][1] = -20;
-					motorArray[DRIVE_FR][1] = 20;
-					motorArray[DRIVE_RL][1] = -20;
-					motorArray[DRIVE_RR][1] = 20;
+					motorArray[DRIVE_FL][1] = -30;
+					motorArray[DRIVE_FR][1] = 30;
+					motorArray[DRIVE_RL][1] = -30;
+					motorArray[DRIVE_RR][1] = 30;
 				}
 				break;
 			case 4:
 				//turn until all four main sensors read absent
+				updateMotors();
 				if(getSensorsPresent() == 0)
 				{
 					trackAndTurn++;
