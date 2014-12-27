@@ -14,5 +14,7 @@ bool lineTrack(int);
 void softStop(void);
 void eStop(void);
 int agvShutdown(void);
-void updateMotors(void);
-
+int getSensorsPresent(void);
+int getSideSensorsPresent(void);
+bool updateMotors(void);
+void INThandler(int);

@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <time.h>
+#include <signal.h>
 
 /* Local includes */
 #include "robotMap.h"
@@ -38,13 +39,16 @@ bool lineTracking = false;
 // Need to initialize tracking for first scan
 bool firstTimeTracking = true;
 // Now running under joystick control
-bool joystickControl = false;
+volatile bool joystickControl = false;
 int lineTrackSpeed = 0; // the speed to run linetrack function at
 bool sideLineTracking = false;
 int sideLineTrackSpeed = 0;
 bool RFIDTracking = false; //whether the cart is currently RFID tracking
 bool properAlignment = true;
-clock_t joyStartClock;
+volatile clock_t joyStartClock;
+int trackAndTurn = 0;
+int motorArray[31][2];
+
 /*
 * This is where the timing loop for the master clock is generated
 * it currently calls one control loop, but could be 
@@ -53,18 +57,22 @@ clock_t joyStartClock;
 PI_THREAD (myThread)	{
 	clock_t joyFinishClock; // for checking elapsed time
 	double joyElapsedTime; 	// time in seconds for master clock
-	float joyMasterLoopTime = 0.150;	// Control loop time
+	float joyMasterLoopTime = 0.030;	// Control loop time
+				//timer is f-ed up, those aren't actually seconds
 	int i_thread = 0;	// test variable
 	printf("hello!\n");
 	joyStartClock = clock();
 	while(true)
 	{
-		joyFinishClock = clock();
-		joyElapsedTime = ((double)(joyFinishClock - joyStartClock)/CLOCKS_PER_SEC);
-		if (joyElapsedTime >= joyMasterLoopTime) {
-			// The usleep() command below screws this up
-			if(joystickControl == true)
-			{
+		
+		if(joystickControl)
+		{
+			printf("joystick control reads true\n");
+			joyFinishClock = clock();
+			joyElapsedTime = ((double)(joyFinishClock - joyStartClock)/CLOCKS_PER_SEC);
+			printf("updating  joyFinishClock and difference between start and finish in secs is: %f\n", joyElapsedTime);
+			if (joyElapsedTime >= joyMasterLoopTime) {
+				// The usleep() command below screws this up
 				softStop();
 				joystickControl = false;
 				printf("lost connection\n");
@@ -84,12 +92,102 @@ PI_THREAD (myThread)	{
 		{
 			properAlignment = adjustAlignment();
 		}
+		printf("trackAndTurn equals: %d\n", trackAndTurn);
+		if(trackAndTurn > 0)
+		{
+			switch(trackAndTurn) {
+			case 1:
+				//follow line until side sensors read true
+				printf("line tracking!\n");
+				lineTrack(30);
+				if(getSideSensorsPresent() >= 2)
+				{
+					trackAndTurn++;
+					printf("found an intersection!\n");
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					//softStop();
+					//usleep(500000);
+					int i = 0;
+					while(i < 32)
+					{
+						motorArray[i][1] = -10;
+						i++;
+						printf("i equals: %d\n", i);
+					}
+				}
+				break;
+			case 2:
+				//slow down to -10 perecent until two side
+				//sensors read true
+				updateMotors();
+				printf("going back to the intersection\n");
+				if(getSideSensorsPresent() >= 2)
+				{
+					trackAndTurn++;
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					softStop();
+					printf("sitting on top of the intersection, ready to turn.\n");
+					usleep(500000);
+				}
+				break;
+			case 3:
+				//adjust alignment
+				printf("adjusting alignment for turn\n");
+				if(adjustAlignment())
+				{
+					trackAndTurn++;
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					softStop();
+					printf("alignment set and beginning turn\n");
+					usleep(500000);
+					motorArray[DRIVE_FL][1] = -20;
+					motorArray[DRIVE_FR][1] = 20;
+					motorArray[DRIVE_RL][1] = -20;
+					motorArray[DRIVE_RR][1] = 20;
+				}
+				break;
+			case 4:
+				//turn until all four main sensors read absent
+				if(getSensorsPresent() == 0)
+				{
+					trackAndTurn++;
+				}
+				break;
+			case 5:
+				//turn until two side sensors read present
+				updateMotors();
+				printf("turning in intersection to the: left\n");
+				if(getSensorsPresent() >= 2)
+				{
+					trackAndTurn++;
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					softStop();
+					printf("successfully turned the robot\n");
+					usleep(500000);
+				}
+				break;
+			case 6:
+				//adjust alignment
+				//and either set trackAndTurn to 0 to stop
+				//or to 1 to create an infinite loop (thou arte my demon, infinite loop)
+				printf("adjusting alignment after turn\n");
+				if(adjustAlignment())
+				{
+					trackAndTurn = 0;
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					printf("alignment adjusted, ready to begin again.\n");
+				}
+				break;
+			default:
+				printf("improper step number\n");
+			}
+		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
 		 * so far, min. value seems to be 100,000 - below that and 
 		 * CPU gobble occurs
 		 */
-		 usleep(100000); 
+		usleep(100000); 
 	}
 }
 
@@ -153,6 +251,11 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	portno = atoi(argv[1]);
+
+	/*
+	 * Creates framework for ctrl-c shutdown
+	 */
+	signal(SIGINT, INThandler);
 
 	/* 
 	 * socket: create the parent socket 
@@ -355,7 +458,7 @@ int main(int argc, char **argv) {
 			
 			break;
 
-         case 8:	// enable/disable line tracking
+		case 8:// enable/disable line tracking
 			if (comaddr == 1) {
 				lineTracking = true;
 				lineTrackSpeed = comval;
@@ -376,6 +479,7 @@ int main(int argc, char **argv) {
 			if (comaddr == 1)
 			{
 				printf("Joystick control enabled\n");
+				joyStartClock = clock();
 				joystickControl = true;
 			}
 			else if (comaddr == 0)
@@ -479,12 +583,20 @@ int main(int argc, char **argv) {
 			joyX = comaddr;
 			joyY = comval;
 			joyZ = comaux;
-			PWMWrite(DRIVE_FR, joyY - joyX - joyZ);
-			PWMWrite(DRIVE_FL, joyY + joyZ + joyX);
-			PWMWrite(DRIVE_RR, joyY - joyZ + joyX);
-			PWMWrite(DRIVE_RL, joyY + joyZ - joyX);
+			if(joystickControl)
+			{
+				PWMWrite(DRIVE_FR, joyY - joyZ - joyX);
+				PWMWrite(DRIVE_FL, joyY + joyZ + joyX);
+				PWMWrite(DRIVE_RR, joyY - joyZ + joyX);
+				PWMWrite(DRIVE_RL, joyY + joyZ - joyX);
+			}
 			joyStartClock = clock();
+			//printf("not resetting joyStartClock!\n");
 			strcpy(reply, "true\n");			
+			break;
+		case 16:
+			trackAndTurn = comaddr;
+			strcpy(reply, "true\n");
 			break;
 		case 99:	// quit
 			agvShutdown();

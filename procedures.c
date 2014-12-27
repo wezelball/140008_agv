@@ -91,6 +91,7 @@ void softStop(void){
 		motorArray[i][1] = 0;
 		i++;
 	}
+	printf("Soft stopped the robot\n");
 }
 
 // Stop all motors and shut off isolation relay
@@ -939,8 +940,9 @@ bool RFIDTrack () {
 	}
 }
 
-void updateMotors() {
+bool updateMotors() {
 	int i = 0;
+	bool motorsUpdated = false;
 	printf("update motors\n");
 	while (i < 32)
 	{
@@ -958,6 +960,7 @@ void updateMotors() {
 		else
 		{
 			motorArray[i][0] = motorArray[i][1];
+			motorsUpdated = true;
 		}
 		i++;
 	}
@@ -986,6 +989,19 @@ void updateMotors() {
 		}
 	}
 	printf("finished updating motors\n");
+	return motorsUpdated;
+}
+
+int getSensorsPresent () {
+	int sensorsTrue = 4;
+	sensorsTrue = sensorsTrue - bitRead(MAG_FL) - bitRead(MAG_FR) - bitRead(MAG_RL) - bitRead(MAG_RR);
+	return sensorsTrue;
+}
+
+int getSideSensorsPresent () {
+	int sensorsTrue = 4;
+	sensorsTrue = sensorsTrue - bitRead(MAG_SFL) - bitRead(MAG_SFR) - bitRead(MAG_SRL) - bitRead(MAG_SRR);
+	return sensorsTrue;
 }
 
 bool checkAlignment() {
@@ -1328,4 +1344,13 @@ bool adjustAlignment () {
 	prevLineSpeed = speed;
 	updateMotors();
 	return checkAlignment();
+}
+
+void INThandler(int sig)
+{
+	//char c;
+	//signal(sig, SIG_IGN);
+	eStop();
+	printf("Emergency Shutdown Activated!\n");
+	exit(0);
 }
