@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <signal.h>
 
 #include "robotMap.h"
 #include "140008lib.h"
@@ -24,6 +25,8 @@
 void joystick_update ( void *ptr );
 
 void heartbeatCheck (void *ptr );
+
+void INThandler(int);
 
 /* 
  * struct to hold data to be passed to a thread
@@ -48,6 +51,7 @@ bool relevant = true;
 struct js_event jse;
 int rc;
 bool joystickControl = false;
+int sockfd;
 
 /* 
  * error - wrapper for perror
@@ -58,7 +62,8 @@ void error(char *msg) {
 }
 
 int main(int argc, char **argv) {
-	int sockfd, portno, n;
+	//int sockfd;
+	int portno, n;
 	struct sockaddr_in serveraddr;
 	struct hostent *server;
 	char *hostname;
@@ -83,6 +88,8 @@ int main(int argc, char **argv) {
 	pthread_t heartbeat_thread;
 	thdata joyData; // this is a structure we can pass to the thread
 	thdata heartData;
+	
+	signal(SIGINT, INThandler);
 	
 	// Create the joystick polling thread
 	pthread_create(&joyThread, NULL, (void *) &joystick_update, (void *) &joyData);
@@ -277,4 +284,15 @@ void heartbeatCheck (void *ptr) {
 		 
 		 usleep(500000);
 	 }
+}
+
+void INThandler(int sig)
+{
+	char buf[BUFSIZE];
+	int n;
+	
+	sprintf(buf, "99\n");
+	n = write(sockfd, buf, strlen(buf));
+	printf("client emergency stopped\n");
+	exit(0);
 }
