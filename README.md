@@ -37,3 +37,6 @@ Password for remote access is 140008
 
 12/13/14
 Almost to the point of line tracking - fixed a lot of stuff in the code
+
+12/27/14
+Have line following code up to 50 in proper orientation, and 30% sideways orientation, safety features for disconnect and emergency shutdown, dead man switch, joystick control, and gyroscope and accelerometer feedback.
