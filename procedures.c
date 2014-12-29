@@ -12,6 +12,7 @@
 // These are declared in 140008_server.c
 extern bool firstTimeTracking;
 extern bool lineTracking;
+extern robotPosition robot;
 
 int yaw = 0;
 int yawCounter = 0;
