@@ -9,9 +9,11 @@
 typedef enum { false = 0, true = !false} bool;
 // I hate having to do this, but I can't figure out a better way for now
 
-struct robotPositionStruct {
+typedef struct robotPositionStruct {
+  float gyroXangle;
+  float AccXangle;
   float CFangleX;
+  float gyroYangle;
+  float AccYangle;
   float CFangleY;
-};
-
-typedef struct robotPositionStruct robotPosition;
+} robotPosition;

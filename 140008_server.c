@@ -57,6 +57,7 @@ bool properAlignment = true;
 volatile clock_t joyStartClock;
 int trackAndTurn = 0;
 int motorArray[31][2];
+robotPosition robot;
 
 void gyro_update (void *ptr );
 
@@ -71,7 +72,14 @@ void gyro_update (void *ptr)
 {
 	thdata *jdata;
 	jdata = (thdata *) ptr;
+	printf("About to Run update angles!\n");
 	updateAngles();
+	printf("angles successfully updated\n");
+	while(true)
+	{
+		usleep(100000);
+		printf("waiting a tenth of a second\n");
+	}
 }
 
 /*
@@ -269,7 +277,6 @@ int main(int argc, char **argv) {
 		softPwmCreate(DRIVE_RL, 0, 100);
 		softPwmCreate(DRIVE_RR, 0, 100);
 		piThreadCreate(myThread);
-		piThreadCreate(gyroThread);
 	#endif
 
 
@@ -598,6 +605,34 @@ int main(int argc, char **argv) {
 			break;
 		case 16:
 			trackAndTurn = comaddr;
+			strcpy(reply, "true\n");
+			break;
+		case 17: //output robot position
+			strcpy(reply, "true\n");
+			break;
+		case 18:
+			switch(comaddr) {
+			case 1:
+				printf("gyroXangle: %f\n", robot.gyroXangle);
+				break;
+			case 2:
+				printf("AccXangle: %f\n", robot.AccXangle);
+				break;
+			case 3:
+				printf("CFangleX: %f\n", robot.CFangleX);
+				break;
+			case 4:
+				printf("gyroYangle: %f\n", robot.gyroYangle);
+				break;
+			case 5:
+				printf("AccYangle: %f\n", robot.AccYangle);
+				break;
+			case 6:
+				printf("CFangleY: %f\n", robot.CFangleY);
+				break;
+			default:
+				outputRobotPos();
+			}
 			strcpy(reply, "true\n");
 			break;
 		case 99:	// quit
