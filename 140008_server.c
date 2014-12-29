@@ -16,11 +16,13 @@
 #include <errno.h>
 #include <time.h>
 #include <signal.h>
+#include <pthread.h>
 
 /* Local includes */
 #include "robotMap.h"
 #include "140008lib.h"
 #include "procedures.h"
+#include "gyroprocedures.h"
 
 /* Includes for RPi only*/
 #ifdef RPI
@@ -30,6 +32,13 @@
 
 #define BUFSIZE 1024
 #define MSGSIZE 32
+
+typedef struct struct_thdata
+{
+	int thread_no;
+	char message[100];
+} thdata;
+
 
 /* Global variables (thou art evil) */
 int lt_motor_speed = 0; //front left motor
@@ -48,6 +57,22 @@ bool properAlignment = true;
 volatile clock_t joyStartClock;
 int trackAndTurn = 0;
 int motorArray[31][2];
+
+void gyro_update (void *ptr );
+
+/*
+*This thread will run the updateAngle function once which will lodge
+*itself in an infinite loop with a 1/100th of a second wait between
+*each cycle.  We may later pull the loop out to the thread for easier
+*maintenance and modification of loop time.
+*/
+
+void gyro_update (void *ptr)
+{
+	thdata *jdata;
+	jdata = (thdata *) ptr;
+	updateAngles();
+}
 
 /*
 * This is where the timing loop for the master clock is generated
@@ -213,8 +238,11 @@ int main(int argc, char **argv) {
 	fd_set fds; /*not 100% what this line does, but is nec*/
 	bool I_AM_PI; /* true if raspberry pi */
 	signed int joyX, joyY, joyZ; /* Joystick X, Y, Z components */
+	pthread_t gyroThread;
+	thdata gyroData;
 
-
+	pthread_create(&gyroThread, NULL, (void *) &gyro_update, (void *) &gyroData);
+	
 	/* Determine if I am a Raspberry Pi*/
 	#ifdef NOPI
 		I_AM_PI = false;
@@ -241,8 +269,12 @@ int main(int argc, char **argv) {
 		softPwmCreate(DRIVE_RL, 0, 100);
 		softPwmCreate(DRIVE_RR, 0, 100);
 		piThreadCreate(myThread);
+		piThreadCreate(gyroThread);
 	#endif
 
+
+	
+	
 	/*
 	 * check command line arguments
 	 */

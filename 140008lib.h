@@ -8,3 +8,10 @@
 
 typedef enum { false = 0, true = !false} bool;
 // I hate having to do this, but I can't figure out a better way for now
+
+struct robotPositionStruct {
+  float CFangleX;
+  float CFangleY;
+};
+
+typedef struct robotPositionStruct robotPosition;
