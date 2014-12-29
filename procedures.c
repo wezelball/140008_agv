@@ -45,7 +45,7 @@ void bitWrite(int pin, int value)	{
 	#else
 		printf("Simulated Digital Write: pin: %d, value: %d\n", pin, value);
 	#endif
-} 
+}
 
 int bitRead(int pin)	{
 	#ifdef RPI
@@ -64,18 +64,6 @@ int PWMWrite(int pin, int value)	{
 		printf("PWM Write: pin: %d, value: %d\n", pin, scaledValue);
 	#endif
 	return scaledValue;
-}
-
-/*
- * Executes acceleration ramp for a given motor
- * Needs to alert a loop callback to increment 
- * motor speed values in the proper fashion
- *  
- */
-int motorRamp(int motor, int finalSpeed, int accel)	{
-	printf("You asked for ramp for motor %d spped %d accel %d\n", motor, finalSpeed, accel);
-	printf("Don't know what the hell to do here yet..\n");
-	return 0;
 }
 
 // Stop all motors without shutting off isolation relay
@@ -103,7 +91,7 @@ void eStop(void){
 	bitWrite(RELAY_ENABLE, 0);
 }
 
-// Stop motion, clean up, and exit 
+// Stop motion, clean up, and exit
 int agvShutdown(void) {
 	lineTracking = false;
 	firstTimeTracking = true;
@@ -112,52 +100,6 @@ int agvShutdown(void) {
 	return(0);
 }
 
-
-/*
- *Just a basic mecanum drive, all drive should go through
- *this function.
- *
- *@param xSpeed how much the robot should move in the X
- * direction
- *
- *@param ySpeed how much the robot should move in the Y
- * direction
- *
- *@param twist at what rate the robot should be twisting
- */
-//void mecanumDrive (int xSpeed, int ySpeed, int twist) {
-	//you are on a new level of quietness today
-	//int magnitude = (sqrt(xSpeed) + sqrt(ySpeed)^2;
-	//int theta = tan(x/y);
-	//if(x > 0 && y > 0)
-	//{
-		/*im just gonna write some pseudo code
-		
-		front right and rear left = magnitude;
-		front left and rear right = magnitude*(1 - theta/45);
-		
-		*/
-	//}
-	//else
-	//{
-		/*
-		
-		front left and rear right = magnitude;
-		front right and rear left = magnitude*(1 - theta/45);		
-		*/
-	//}
-	/*
-	front left = front left + twist;
-	rear left = rear left + twist;
-	front right = front right - twist;
-	rear right = rear right - twist;
-	if any of the above four numbers are now greater than 100 or
-	less than -100, then scale them all back so that that 
-	respective number is either -100 or 100
-	*/
-//}
-
-
 /*
  *  Call this procedure if the tracking flag is set to true
  * 	Return a value of true if successful
@@ -165,7 +107,7 @@ int agvShutdown(void) {
 
 bool lineTrack(int speed) {
 	// mag sensor values read once per loop iteration
-	int magFL, magFR, magRL, magRR; 
+	int magFL, magFR, magRL, magRR;
 	int FLmod, FRmod, RLmod, RRmod, tester;
 	int fwd = 1;
 	if(prevLineSpeed != speed)
@@ -184,7 +126,7 @@ bool lineTrack(int speed) {
 		PWMWrite(DRIVE_FL, speed + DRIVE_FL_OFFSET);
 		PWMWrite(DRIVE_RR, speed + DRIVE_RR_OFFSET);
 		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
-		
+
 		firstTimeTracking = false;
 	}
 	// Just read the sensors once per loop
@@ -205,8 +147,8 @@ bool lineTrack(int speed) {
 
 	/*
 	*  There are 16 different cases for sensors possibilities
-	* 
-	* 
+	*
+	*
 	*/
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
 	{
@@ -227,7 +169,7 @@ bool lineTrack(int speed) {
 			printf("Translation Corrected\n");
 			translated = 0;
 			translateCounter = 0;
-			
+
 		}
 	}
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
@@ -236,7 +178,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -249,7 +191,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -273,7 +215,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -286,7 +228,7 @@ bool lineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -299,7 +241,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -312,7 +254,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -322,7 +264,7 @@ bool lineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -335,7 +277,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -348,7 +290,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -362,7 +304,7 @@ bool lineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -375,7 +317,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -384,7 +326,7 @@ bool lineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -408,7 +350,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -418,7 +360,7 @@ bool lineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -431,7 +373,7 @@ bool lineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -440,7 +382,7 @@ bool lineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -471,7 +413,7 @@ bool lineTrack(int speed) {
 			tester = RRmod;
 		}
 		if(RLmod < tester)
-		{	
+		{
 			tester = RLmod;
 		}
 		if(tester < 0)
@@ -486,7 +428,7 @@ bool lineTrack(int speed) {
 			printf("lineError!\n");
 			PWMWrite(DRIVE_FR, 0);
 			PWMWrite(DRIVE_FL, 0);
-			PWMWrite(DRIVE_RR, 0);	
+			PWMWrite(DRIVE_RR, 0);
 			PWMWrite(DRIVE_RL, 0);
 		}
 		else
@@ -515,7 +457,7 @@ bool lineTrack(int speed) {
 			tester = RRmod;
 		}
 		if(RLmod > tester)
-		{	
+		{
 			tester = RLmod;
 		}
 		if(tester > 0)
@@ -530,7 +472,7 @@ bool lineTrack(int speed) {
 			printf("lineError!\n");
 			PWMWrite(DRIVE_FR, 0);
 			PWMWrite(DRIVE_FL, 0);
-			PWMWrite(DRIVE_RR, 0);	
+			PWMWrite(DRIVE_RR, 0);
 			PWMWrite(DRIVE_RL, 0);
 		}
 		else
@@ -548,7 +490,7 @@ bool lineTrack(int speed) {
 
 bool sideLineTrack(int speed) {
 	// mag sensor values read once per loop iteration
-	int magFL, magFR, magRL, magRR; 
+	int magFL, magFR, magRL, magRR;
 	int FLmod, FRmod, RLmod, RRmod, tester;
 	int fwd = 1;
 	if(prevLineSpeed != speed)
@@ -567,7 +509,7 @@ bool sideLineTrack(int speed) {
 		PWMWrite(DRIVE_FL, speed + DRIVE_FL_OFFSET);
 		PWMWrite(DRIVE_RR, speed + DRIVE_RR_OFFSET);
 		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
-		
+
 		firstTimeTracking = false;
 	}
 	// Just read the sensors once per loop
@@ -588,8 +530,8 @@ bool sideLineTrack(int speed) {
 
 	/*
 	*  There are 16 different cases for sensors possibilities
-	* 
-	* 
+	*
+	*
 	*/
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
 	{
@@ -610,7 +552,7 @@ bool sideLineTrack(int speed) {
 			printf("Translation Corrected\n");
 			translated = 0;
 			translateCounter = 0;
-			
+
 		}
 	}
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
@@ -619,7 +561,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -632,7 +574,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -656,7 +598,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -669,7 +611,7 @@ bool sideLineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -682,7 +624,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -695,7 +637,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -705,7 +647,7 @@ bool sideLineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -718,7 +660,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -731,7 +673,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -745,7 +687,7 @@ bool sideLineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -758,7 +700,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -767,7 +709,7 @@ bool sideLineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -791,7 +733,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -801,7 +743,7 @@ bool sideLineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -814,7 +756,7 @@ bool sideLineTrack(int speed) {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -823,7 +765,7 @@ bool sideLineTrack(int speed) {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -854,7 +796,7 @@ bool sideLineTrack(int speed) {
 			tester = RRmod;
 		}
 		if(RLmod < tester)
-		{	
+		{
 			tester = RLmod;
 		}
 		if(tester < 0)
@@ -869,7 +811,7 @@ bool sideLineTrack(int speed) {
 			printf("lineError!\n");
 			PWMWrite(DRIVE_FR, 0);
 			PWMWrite(DRIVE_FL, 0);
-			PWMWrite(DRIVE_RR, 0);	
+			PWMWrite(DRIVE_RR, 0);
 			PWMWrite(DRIVE_RL, 0);
 		}
 		else
@@ -897,7 +839,7 @@ bool sideLineTrack(int speed) {
 			tester = RRmod;
 		}
 		if(RLmod > tester)
-		{	
+		{
 			tester = RLmod;
 		}
 		if(tester > 0)
@@ -912,7 +854,7 @@ bool sideLineTrack(int speed) {
 			printf("lineError!\n");
 			PWMWrite(DRIVE_FR, 0);
 			PWMWrite(DRIVE_FL, 0);
-			PWMWrite(DRIVE_RR, 0);	
+			PWMWrite(DRIVE_RR, 0);
 			PWMWrite(DRIVE_RL, 0);
 		}
 		else
@@ -979,7 +921,7 @@ bool updateMotors() {
 	{
 		PWMWrite(DRIVE_FR, 0);
 		PWMWrite(DRIVE_FL, 0);
-		PWMWrite(DRIVE_RR, 0);	
+		PWMWrite(DRIVE_RR, 0);
 		PWMWrite(DRIVE_RL, 0);
 		i = 0;
 		while(i < 32)
@@ -1024,7 +966,7 @@ bool checkAlignment() {
 bool adjustAlignment () {
 	int speed = 30;
 	// mag sensor values read once per loop iteration
-	int magFL, magFR, magRL, magRR; 
+	int magFL, magFR, magRL, magRR;
 	int FLmod, FRmod, RLmod, RRmod, tester;
 	int fwd = 1;
 	int parallelError = 0;
@@ -1044,7 +986,7 @@ bool adjustAlignment () {
 		PWMWrite(DRIVE_FL, speed + DRIVE_FL_OFFSET);
 		PWMWrite(DRIVE_RR, speed + DRIVE_RR_OFFSET);
 		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
-		
+
 		firstTimeTracking = false;
 	}
 	// Just read the sensors once per loop
@@ -1065,8 +1007,8 @@ bool adjustAlignment () {
 
 	/*
 	*  There are 16 different cases for sensors possibilities
-	* 
-	* 
+	*
+	*
 	*/
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
 	{
@@ -1087,7 +1029,7 @@ bool adjustAlignment () {
 			printf("Translation Corrected\n");
 			translated = 0;
 			translateCounter = 0;
-			
+
 		}
 	}
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == ABSENT)
@@ -1096,7 +1038,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -1109,7 +1051,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -1132,7 +1074,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -1145,7 +1087,7 @@ bool adjustAlignment () {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -1158,7 +1100,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -1171,7 +1113,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -1181,7 +1123,7 @@ bool adjustAlignment () {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -1194,7 +1136,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -1207,7 +1149,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -1221,7 +1163,7 @@ bool adjustAlignment () {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -1234,7 +1176,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -1243,7 +1185,7 @@ bool adjustAlignment () {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -1265,7 +1207,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != -1)
 		{
 			yaw = -1;
@@ -1275,7 +1217,7 @@ bool adjustAlignment () {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != -1)
 		{
 			translated = -1;
@@ -1288,7 +1230,7 @@ bool adjustAlignment () {
 		if(yawCounter < abs(speed))
 		{
 			yawCounter = yawCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(yaw != 1)
 		{
 			yaw = 1;
@@ -1297,7 +1239,7 @@ bool adjustAlignment () {
 		if(translateCounter < abs(speed))
 		{
 			translateCounter = translateCounter + 1 + (abs(speed)/30);
-		} 
+		}
 		if(translated != 1)
 		{
 			translated = 1;
@@ -1321,7 +1263,7 @@ bool adjustAlignment () {
 		printf("lineError!\n");
 		PWMWrite(DRIVE_FR, 0);
 		PWMWrite(DRIVE_FL, 0);
-		PWMWrite(DRIVE_RR, 0);	
+		PWMWrite(DRIVE_RR, 0);
 		PWMWrite(DRIVE_RL, 0);
 	}
 	else

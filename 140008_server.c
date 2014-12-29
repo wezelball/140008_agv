@@ -1,5 +1,5 @@
-/* 
- * 140008_server.c - A simple TCP echo server 
+/*
+ * 140008_server.c - A simple TCP echo server
  * usage: 140008_server <port>
  */
 
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netdb.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -51,7 +51,7 @@ int motorArray[31][2];
 
 /*
 * This is where the timing loop for the master clock is generated
-* it currently calls one control loop, but could be 
+* it currently calls one control loop, but could be
 * extended in the future
 */
 PI_THREAD (myThread)	{
@@ -64,7 +64,7 @@ PI_THREAD (myThread)	{
 	joyStartClock = clock();
 	while(true)
 	{
-		
+
 		if(joystickControl)
 		{
 			printf("joystick control reads true\n");
@@ -92,7 +92,6 @@ PI_THREAD (myThread)	{
 		{
 			properAlignment = adjustAlignment();
 		}
-		//printf("trackAndTurn equals: %d\n", trackAndTurn);
 		if(trackAndTurn > 0)
 		{
 			switch(trackAndTurn) {
@@ -185,10 +184,10 @@ PI_THREAD (myThread)	{
 		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
-		 * so far, min. value seems to be 100,000 - below that and 
+		 * so far, min. value seems to be 100,000 - below that and
 		 * CPU gobble occurs
 		 */
-		usleep(100000); 
+		usleep(100000);
 	}
 }
 
@@ -214,21 +213,21 @@ int main(int argc, char **argv) {
 	fd_set fds; /*not 100% what this line does, but is nec*/
 	bool I_AM_PI; /* true if raspberry pi */
 	signed int joyX, joyY, joyZ; /* Joystick X, Y, Z components */
-	
-	
+
+
 	/* Determine if I am a Raspberry Pi*/
 	#ifdef NOPI
 		I_AM_PI = false;
 	#endif
 
-	/* 
+	/*
 	 * If this is a RPi, set up the gpio pins
-	 * 
+	 *
 	 */
 	#ifdef RPI
 		printf("RPI setup found\n");
 		wiringPiSetup();
-		
+
 		// Magnetic tape sensors
 		pinMode(MAG_FL, INPUT);
 		pinMode(MAG_FR, INPUT);
@@ -236,7 +235,7 @@ int main(int argc, char **argv) {
 		pinMode(MAG_RR, INPUT);
 		pinMode(MAG_SLND, OUTPUT);
 		pinMode(RELAY_ENABLE, OUTPUT);  // motor isolation relay
-		
+
 		softPwmCreate(DRIVE_FL, 0, 100);
 		softPwmCreate(DRIVE_FR, 0, 100);
 		softPwmCreate(DRIVE_RL, 0, 100);
@@ -244,8 +243,8 @@ int main(int argc, char **argv) {
 		piThreadCreate(myThread);
 	#endif
 
-	/* 
-	 * check command line arguments 
+	/*
+	 * check command line arguments
 	 */
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s <port>\n", argv[0]);
@@ -258,11 +257,11 @@ int main(int argc, char **argv) {
 	 */
 	signal(SIGINT, INThandler);
 
-	/* 
-	 * socket: create the parent socket 
+	/*
+	 * socket: create the parent socket
 	 */
 	parentfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (parentfd < 0) 
+	if (parentfd < 0)
 		error("ERROR opening socket");
 
 	/*
@@ -279,54 +278,54 @@ int main(int argc, char **argv) {
 	/* this is the port we will listen on */
 	serveraddr.sin_port = htons((unsigned short)portno);
 
-	/* 
-	 * bind: associate the parent socket with a port 
+	/*
+	 * bind: associate the parent socket with a port
 	 */
-	if (bind(parentfd, (struct sockaddr *) &serveraddr, 
-		sizeof(serveraddr)) < 0) 
+	if (bind(parentfd, (struct sockaddr *) &serveraddr,
+		sizeof(serveraddr)) < 0)
 		error("ERROR on binding");
 
-	/* setsockopt: Handy debugging trick that lets 
-	 * us rerun the server immediately after we kill it; 
-	 * otherwise we have to wait about 20 secs. 
+	/* setsockopt: Handy debugging trick that lets
+	 * us rerun the server immediately after we kill it;
+	 * otherwise we have to wait about 20 secs.
 	 * Eliminates "ERROR on binding: Address already in use" error.
-	 * 
+	 *
 	 * dcohen:
 	 * This problem has not been fully solved.  When server is
 	 * shut down, still need to wait TIME_WAIT seconds before
 	 * trying to reconnect, or same error will occur
 	 */
 	optval = 1;
-	setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR, 
+	setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR,
 			 (const void *)&optval , sizeof(int));
 
-	/* 
-	 * listen: make this socket ready to accept connection requests 
+	/*
+	 * listen: make this socket ready to accept connection requests
 	 */
-	if (listen(parentfd, 5) < 0) /* allow 5 requests to queue up */ 
+	if (listen(parentfd, 5) < 0) /* allow 5 requests to queue up */
 		error("ERROR on listen");
 
-	/* 
-	 * main loop: wait for a connection request, echo input line, 
+	/*
+	 * main loop: wait for a connection request, echo input line,
 	 * then close connection.
 	 */
 	clientlen = sizeof(clientaddr);
 
 	while (1) {
-		/* 
-		 * accept: wait for a connection request 
+		/*
+		 * accept: wait for a connection request
 		 */
 		childfd = accept(parentfd, (struct sockaddr *) &clientaddr, &clientlen);
-		if (childfd < 0) 
+		if (childfd < 0)
 			error("ERROR on accept");
-    
-		/* 
+
+		/*
 		 * gethostbyaddr: determine who sent the message
-		 * 
-		 * dcohen - I have disabled this currently as this breaks on 
+		 *
+		 * dcohen - I have disabled this currently as this breaks on
 		 * a remote PC - need to find out why (see commented out below)
 		 */
-		 
+
 		 /*
 		hostp = gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr,
 				sizeof(clientaddr.sin_addr.s_addr), AF_INET);
@@ -337,19 +336,19 @@ int main(int argc, char **argv) {
 			error("ERROR on inet_ntoa\n");
 		printf("server established connection with %s (%s)\n", hostp->h_name, hostaddrp);
 		*/ 
-    
-		/* 
+
+		/*
 		 * read: read input string from the client
-		 * 
+		 *
 		 * NOTE:
 		 * Need to fix to allow arbitrary number of arguments
-		 * 
+		 *
 		 */
 		bzero(buf, BUFSIZE);
 		bzero(input, BUFSIZE);
-	
+
 		n = read(childfd, buf, BUFSIZE);
-		if (n < 0) 
+		if (n < 0)
 			error("ERROR reading from socket");
 		printf("server received %d bytes: %s", n, buf);
 		//for the future, strcmp(string, string) is useful for comparison
@@ -371,7 +370,7 @@ int main(int argc, char **argv) {
 		 * using a nul pointer, the program will segfault
 		 */
 		 // do we have a 2nd parameter (address)
-		if (param[1] != NULL)	{	
+		if (param[1] != NULL)	{
 			comaddr = atoi(param[1]);
 		}
 		// do we have a 3rd parameter (value)
@@ -381,7 +380,7 @@ int main(int argc, char **argv) {
 		// do we have a 4th parameter (aux value)
 		if (param[3] != NULL)
 			comaux = atoi(param[3]);
-		
+
 		// Branch according to command number
 		switch (command) {
 		case 0: /* RPi pin test - */
@@ -429,36 +428,6 @@ int main(int argc, char **argv) {
 				strcpy(reply, "invalid value.\n");
 			}
 			break;
-		case 7: /* ramp motor speed */
-			/* parameters : motor, end_speed, accel
-			 * 0 - front left 
-			 * 1 - front right
-			 * 2 - rear left
-			 * 3 - rear right
-			 */
-			 if (comaddr < 0 || comaddr > 3) // motor number
-			 {
-				 printf("Valid values 0 to 3.\n");
-				 strcpy(reply, "false\n");
-				 break;
-			 }
-			 else if(comval < -100 || comval > 100) // motor speed
-			 {
-				 printf("Valid values -100 to 100.\n");
-				 strcpy(reply, "false\n");
-				 break;
-			 }
-			
-			 /* start motor ramp 
-			  * 
-			  * I wanted to pass accel as a parameter, but we need to
-			  * fix routine to accept more arguments
-			  * Will hardcode accel for now
-			  */
-			 motorRamp(comaddr, comval, 2);
-			
-			break;
-
 		case 8:// enable/disable line tracking
 			if (comaddr == 1) {
 				lineTracking = true;
@@ -475,7 +444,7 @@ int main(int argc, char **argv) {
 				strcpy(reply, "false\n");
 			}
 			break;
-			
+
 		case 9:	// joystick enable/disable
 			if (comaddr == 1)
 			{
@@ -489,7 +458,7 @@ int main(int argc, char **argv) {
 				softStop();
 				joystickControl = false;
 			}
-			strcpy(reply, "true\n");			
+			strcpy(reply, "true\n");
 			break;
 		case 10: //tank drive
 			if(comaddr == 0)
@@ -528,7 +497,7 @@ int main(int argc, char **argv) {
 				PWMWrite(DRIVE_RL, -comval);
 			}
 			strcpy(reply, "true\n");
-			break;	
+			break;
 		case 11: //RFID Control!
 			if(comaddr == 0)
 			{
@@ -540,7 +509,7 @@ int main(int argc, char **argv) {
 				RFIDTracking = true;
 				properAlignment = false;
 			}
-			
+
 			break;
 		case 12: //adjust alignment
 			if(comaddr == 1)
@@ -593,7 +562,7 @@ int main(int argc, char **argv) {
 			}
 			joyStartClock = clock();
 			//printf("not resetting joyStartClock!\n");
-			strcpy(reply, "true\n");			
+			strcpy(reply, "true\n");
 			break;
 		case 16:
 			trackAndTurn = comaddr;
@@ -607,11 +576,11 @@ int main(int argc, char **argv) {
 			printf("Input in int-int-int format - wtf is wrong with you?\n");
 		}
 
-		/* 
-		 * write: reply the message to the client 
+		/*
+		 * write: reply the message to the client
 		 */
 		n = write(childfd, reply, strlen(reply));
-		if (n < 0) 
+		if (n < 0)
 			error("ERROR writing to socket");
 
 		close(childfd);

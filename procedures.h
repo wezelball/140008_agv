@@ -9,12 +9,15 @@ void error(char *);		// wrapper for perror
 void bitWrite(int, int);	// abstracted bit write
 int bitRead(int);			// abstracted bit read
 int PWMWrite(int, int);	// abstracted PWM write
-int motorRamp(int, int, int); //motor speed ramp
-bool lineTrack(int);
 void softStop(void);
 void eStop(void);
 int agvShutdown(void);
+bool lineTrack(int);
+bool sideLineTrack(int);
+bool RFIDTrack(void);
+bool updateMotors(void);
 int getSensorsPresent(void);
 int getSideSensorsPresent(void);
-bool updateMotors(void);
+bool checkAlignment(void);
+bool adjustAlignment(void);
 void INThandler(int);
