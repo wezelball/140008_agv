@@ -90,8 +90,10 @@ void gyro_update (void *ptr)
 PI_THREAD (myThread)	{
 	clock_t joyFinishClock; // for checking elapsed time
 	double joyElapsedTime; 	// time in seconds for master clock
-	float joyMasterLoopTime = 0.030;	// Control loop time
+	float joyMasterLoopTime = 0.080;	// Control loop time
 				//timer is f-ed up, those aren't actually seconds
+				//is normally 0.03-0.04, only have it 0.08 for testing
+				//purposes, make sure to revert.
 	int i_thread = 0;	// test variable
 	printf("hello!\n");
 	joyStartClock = clock();
@@ -100,10 +102,8 @@ PI_THREAD (myThread)	{
 
 		if(joystickControl)
 		{
-			printf("joystick control reads true\n");
 			joyFinishClock = clock();
 			joyElapsedTime = ((double)(joyFinishClock - joyStartClock)/CLOCKS_PER_SEC);
-			printf("updating  joyFinishClock and difference between start and finish in secs is: %f\n", joyElapsedTime);
 			if (joyElapsedTime >= joyMasterLoopTime) {
 				// The usleep() command below screws this up
 				softStop();
@@ -172,10 +172,10 @@ PI_THREAD (myThread)	{
 					softStop();
 					printf("alignment set and beginning turn\n");
 					usleep(500000);
-					motorArray[DRIVE_FL][1] = -30;
-					motorArray[DRIVE_FR][1] = 30;
-					motorArray[DRIVE_RL][1] = -30;
-					motorArray[DRIVE_RR][1] = 30;
+					motorArray[DRIVE_FL][1] = -27;
+					motorArray[DRIVE_FR][1] = 27;
+					motorArray[DRIVE_RL][1] = -27;
+					motorArray[DRIVE_RR][1] = 27;
 				}
 				break;
 			case 4:
@@ -190,16 +190,30 @@ PI_THREAD (myThread)	{
 				//turn until two side sensors read present
 				updateMotors();
 				printf("turning in intersection to the: left\n");
-				if(getSensorsPresent() >= 2)
+				if(getSideSensorsPresent() >= 2)
 				{
 					trackAndTurn++;
 					printf("trackAndTurn now equals: %d\n", trackAndTurn);
 					softStop();
 					printf("successfully turned the robot\n");
 					usleep(500000);
+					motorArray[DRIVE_FR][1] = -27;
+					motorArray[DRIVE_FL][1] = 27;
+					motorArray[DRIVE_RR][1] = 27;
+					motorArray[DRIVE_RL][1] = -27;
 				}
 				break;
 			case 6:
+				updateMotors();
+				if(getSensorsPresent() >= 2)
+				{
+					trackAndTurn++;
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					softStop();
+					printf("successfully found intersection after turn\n");
+				}
+				break;
+			case 7:
 				//adjust alignment
 				//and either set trackAndTurn to 0 to stop
 				//or to 1 to create an infinite loop (thou arte my demon, infinite loop)
@@ -388,8 +402,13 @@ int main(int argc, char **argv) {
 
 		n = read(childfd, buf, BUFSIZE);
 		if (n < 0)
+		{
 			error("ERROR reading from socket");
-		printf("server received %d bytes: %s", n, buf);
+		}
+		if(joystickControl != true)
+		{
+			printf("server received %d bytes: %s", n, buf);
+		}
 		//for the future, strcmp(string, string) is useful for comparison
 		//between two strings. will return 0 if equal.
 		//while strtoken(char *str, const char *delim) is probably the
@@ -605,6 +624,10 @@ int main(int argc, char **argv) {
 			break;
 		case 16:
 			trackAndTurn = comaddr;
+			if(comaddr = 0)
+			{
+				softStop();
+			}
 			strcpy(reply, "true\n");
 			break;
 		case 17: //output robot position
@@ -642,6 +665,7 @@ int main(int argc, char **argv) {
 		default:
 			printf("Input in int-int-int format - wtf is wrong with you?\n");
 		}
+		outputRobotPos();
 
 		/*
 		 * write: reply the message to the client

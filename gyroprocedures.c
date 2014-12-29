@@ -150,9 +150,9 @@ void updateAngles()
 	
 	//fflush(stdout);
 	//Each loop should be at least 20ms.
-        while(mymillis() - startInt < 100)
+        while(mymillis() - startInt < 20)
         {
-            usleep(100000);
+            usleep(100);
         }
 
 	//printf("Loop Time %d\t", mymillis()- startInt);
@@ -160,10 +160,10 @@ void updateAngles()
 }
 
 void outputRobotPos() {
-    printf("GyroX:  %f\n", robot.gyroXangle);
-    printf("AccXangle:  %f\n", robot.AccXangle);
-    printf("CFangleX: %f\n", robot.CFangleX);
-    printf("GyroY:  %f\n", robot.gyroYangle);
-    printf("AccYangle: %f\n", robot.AccYangle);
-    printf("CFangleY: %f\n", robot.CFangleY);
+    printf("GyroX:  %f\t", robot.gyroXangle);
+    printf("AccX:  %f\t", robot.AccXangle);
+    printf("CFanX: %f\t", robot.CFangleX);
+    printf("GyroY:  %f\t", robot.gyroYangle);
+    printf("AccY: %f  \t", robot.AccYangle);
+    printf("CFanY: %f\n", robot.CFangleY);
 }
