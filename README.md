@@ -28,7 +28,7 @@ given a positive speed.
 
 Got rid of some compiler warnings by adding proper includes.
 
-Fixed threads by movibng back into main
+Fixed threads by moving back into main.
 
 Started code on speed ramp generation.
 
@@ -40,3 +40,12 @@ Almost to the point of line tracking - fixed a lot of stuff in the code
 
 12/27/14
 Have line following code up to 50 in proper orientation, and 30% sideways orientation, safety features for disconnect and emergency shutdown, dead man switch, joystick control, and gyroscope and accelerometer feedback.
+
+12/30/14
+Accelerometer code proceeding well.  Now need to address the interface PCB design upgrade - there are several issues to address to improve the board:
+1. PWM signals need to come straight from the Pi, and not go through the buffer chips. PWM and other "raw" outputs/inputs should be a special class of I/O. Even through PWM's from Pi may be deprecated, need to maintain backwards compatibility.
+2. The pins on the SPI and and I2C headers are too tall - I need to specify shorter ones.
+3. All I/O and power connections to the board need to be changed to plug-in style connectors (i.e. phoenix), to simplify board replacement.
+4. There are too few inputs, and too many outputs. Currently 9 inputs, 12 outputs, can probably reverse that.
+5. Buffer chips should be socketed!
+6. Need to case the PCB with an enclosure.
