@@ -9,19 +9,44 @@
 #include "procedures.h"
 #include "robotMap.h"
 
-// These are declared in 140008_server.c
-extern bool firstTimeTracking;
-extern bool lineTracking;
-extern robotPosition robot;
+/* These are declared in 140008_server.c */
+extern bool firstTimeTracking;	// First iteration of line tracking
+extern bool lineTracking;			// We are line tracking
+/* 
+ * Found in 140008lib.h, this is a struct that defines robot
+ * in 2D space position according to the IMU 
+ */
+extern robotPosition robot;		
 
-int yaw = 0;
-int yawCounter = 0;
-int translated = 0;
-int translateCounter = 0;
-int lineError = 0;
-int lineErrorSent = 0;
-int prevLineSpeed = 0;
-int motorArray[31][2];
+/*
+ * Some of these variables should be boolean, would make code 
+ * easier to read
+ */ 
+
+/* 
+ * 0 if no yaw error (all sensors on)
+ * 1 if yaw error clockwise
+ * -1 if yaw error counterclockwise
+ * 
+ * This is okay to have 3 states, but defining them would make code
+ * clearer - see my comment in 140008lib.h
+ */
+int yaw = 0;					// 0 if no yaw error, 1 if error
+									// should name yawError instead
+int yawCounter = 0;			// Please add definition here
+int translated = 0;			// Please add definition here
+int translateCounter = 0;	// Please add definition here
+
+/* 
+ * 0 if no line error (all sensors on)
+ * 1 is all sensors off
+ * -1 if both rear sensors off (why this state?)
+ * should be boolean
+ */
+int lineError = 0;										
+int lineErrorSent = 0;		// Please add definition here
+int prevLineSpeed = 0;		// Please add definition here
+int motorArray[31][2];		// Please add definition here
 
 /*
  * error - wrapper for perror
@@ -32,6 +57,8 @@ void error(char *msg) {
 }
 
 /* Abstracted I/O functions*/
+
+/* Write a single bit to an ouput */
 void bitWrite(int pin, int value)	{
 	#ifdef RPI
 		if (value == 0)	{
@@ -48,6 +75,7 @@ void bitWrite(int pin, int value)	{
 	#endif
 }
 
+/* Read a single bit from an input */
 int bitRead(int pin)	{
 	#ifdef RPI
 		return (digitalRead(pin));
@@ -57,6 +85,7 @@ int bitRead(int pin)	{
 	#endif
 }
 
+/* Write an "analog" value to a PWM output */
 int PWMWrite(int pin, int value)	{
 	int scaledValue = value/9 + 15;
 	#ifdef RPI
@@ -67,13 +96,15 @@ int PWMWrite(int pin, int value)	{
 	return scaledValue;
 }
 
-// Stop all motors without shutting off isolation relay
+/* Stop all motors without shutting off isolation relay */
 void softStop(void){
 	PWMWrite(DRIVE_FR, 0);
 	PWMWrite(DRIVE_FL, 0);
 	PWMWrite(DRIVE_RR, 0);
 	PWMWrite(DRIVE_RL, 0);
 	int i = 0;
+	
+	/* Please explain the function of this while loop */
 	while(i < 32)
 	{
 		motorArray[i][0] = 0;
@@ -83,7 +114,7 @@ void softStop(void){
 	printf("Soft stopped the robot\n");
 }
 
-// Stop all motors and shut off isolation relay
+/* Stop all motors and shut off isolation relay */
 void eStop(void){
 	PWMWrite(DRIVE_FR, 0);
 	PWMWrite(DRIVE_FL, 0);
@@ -92,7 +123,7 @@ void eStop(void){
 	bitWrite(RELAY_ENABLE, 0);
 }
 
-// Stop motion, clean up, and exit
+/* Stop motion, clean up, and exit */
 int agvShutdown(void) {
 	lineTracking = false;
 	firstTimeTracking = true;
@@ -103,14 +134,19 @@ int agvShutdown(void) {
 
 /*
  *  Call this procedure if the tracking flag is set to true
- * 	Return a value of true if successful
+ *  Return a value of true if successful
  */
 
 bool lineTrack(int speed) {
 	// mag sensor values read once per loop iteration
 	int magFL, magFR, magRL, magRR;
+	// Please explaine the following variables
 	int FLmod, FRmod, RLmod, RRmod, tester;
-	int fwd = 1;
+	int fwd = 1;	// robot is tracking in forward direction
+	
+	/* Please explaine the function of the following code 
+	 * block 
+	 */
 	if(prevLineSpeed != speed)
 	{
 		yawCounter = 0;
@@ -119,6 +155,10 @@ bool lineTrack(int speed) {
 		translated = 0;
 		lineError = 0;
 	}
+	
+	/* Please explain the function of the following code 
+	 * block 
+	 */
 	if (firstTimeTracking)
 	{
 		printf("Initializing motors\n");
@@ -130,7 +170,10 @@ bool lineTrack(int speed) {
 
 		firstTimeTracking = false;
 	}
+	
 	// Just read the sensors once per loop
+	
+	/* going forward, read the sensors as defined */
 	if(fwd == 1)
 	{
 		magFL = bitRead(MAG_FL);
@@ -138,12 +181,13 @@ bool lineTrack(int speed) {
 		magRL = bitRead(MAG_RL);
 		magRR = bitRead(MAG_RR);
 	}
+	/* going backwards, redefine the sensors in reverse order */
 	else
 	{
-		magRR = bitRead(MAG_FL);
-		magRL = bitRead(MAG_FR);
-		magFR = bitRead(MAG_RL);
-		magFL = bitRead(MAG_RR);
+		magRR = bitRead(MAG_FL);	// Rear Right Rear now Front Left
+		magRL = bitRead(MAG_FR);	// Rear Left now Front Right
+		magFR = bitRead(MAG_RL);	// Front Right not Rear Left
+		magFL = bitRead(MAG_RR);	// Front left now Rear Right
 	}
 
 	/*
@@ -154,9 +198,10 @@ bool lineTrack(int speed) {
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
 	{
 		printf("Sensor alignment: proper\n");
+		/* There is no line error, so set false - why not boolean? */
 		if(lineError != 0)
 		{
-			printf("error fixed\n");
+			printf("Line error fixed\n");
 			lineError = 0;
 		}
 		if(yaw != 0)
@@ -1064,6 +1109,10 @@ bool adjustAlignment () {
 		printf("Sensor alignment: yaw unknown both rear sensors off\n");
 		if(fwd == -1)
 		{
+			/* 
+			 * This is the only case where line error is set to -1
+			 *	Should be boolean 
+			 */
 			lineError = -1;
 		}
 		parallelError = 1;
