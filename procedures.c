@@ -33,9 +33,9 @@ extern robotPosition robot;
  */
 int yaw = 0;					// 0 if no yaw error, 1 if error
 									// should name yawError instead
-int yawCounter = 0;			// Please add definition here
-int translated = 0;			// Please add definition here
-int translateCounter = 0;	// Please add definition here
+int yawCounter = 0;			// increments how drastic the yaw is
+int translated = 0;			// same as yaw variable, 0 if no error, 1 if right, -1 if left.
+int translateCounter = 0;	// increments how drastic the translation error is
 
 /* 
  * 0 if no line error (all sensors on)
@@ -44,9 +44,11 @@ int translateCounter = 0;	// Please add definition here
  * should be boolean
  */
 int lineError = 0;										
-int lineErrorSent = 0;		// Please add definition here
-int prevLineSpeed = 0;		// Please add definition here
-int motorArray[31][2];		// Please add definition here
+int lineErrorSent = 0;		// Please add definition here - not 100% sure what this does
+int prevLineSpeed = 0;		// defines what the prev line tracking rate was, and if
+				//different reset the counters.
+int motorArray[31][2];		// holds current motor rates and desired motor rates
+				///only logically used in updateMotors(), and reset in softStop()
 
 /*
  * error - wrapper for perror
@@ -104,7 +106,9 @@ void softStop(void){
 	PWMWrite(DRIVE_RL, 0);
 	int i = 0;
 	
-	/* Please explain the function of this while loop */
+	/* resets the whole motorArray so if updateMotors is called
+	 * it won't accidentally send a previous value.
+	 */
 	while(i < 32)
 	{
 		motorArray[i][0] = 0;
@@ -140,12 +144,15 @@ int agvShutdown(void) {
 bool lineTrack(int speed) {
 	// mag sensor values read once per loop iteration
 	int magFL, magFR, magRL, magRR;
-	// Please explaine the following variables
+	// these are how much to add/subtract from each motor,
+	//and tester holds the most negative value of the four
+	// - if tester is negative, add it to all so all mod's are the same sign.
 	int FLmod, FRmod, RLmod, RRmod, tester;
 	int fwd = 1;	// robot is tracking in forward direction
 	
-	/* Please explaine the function of the following code 
-	 * block 
+	/* If you choose to track at a different rate without resetting,
+	 * this resets all the counters to 0. 
+	 * 
 	 */
 	if(prevLineSpeed != speed)
 	{
@@ -169,7 +176,7 @@ bool lineTrack(int speed) {
 		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
 
 		firstTimeTracking = false;
-	}
+	}//this code is unnecessary now.
 	
 	// Just read the sensors once per loop
 	
@@ -345,7 +352,6 @@ bool lineTrack(int speed) {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
-		//translate to the left
 		printf("Sensor alignment: translated right\n");
 		if(translateCounter < abs(speed))
 		{
@@ -728,7 +734,6 @@ bool sideLineTrack(int speed) {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
-		//translate to the left
 		printf("Sensor alignment: translated right\n");
 		if(translateCounter < abs(speed))
 		{
@@ -1208,7 +1213,6 @@ bool adjustAlignment () {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
-		//translate to the left
 		printf("Sensor alignment: translated right\n");
 		if(translateCounter < abs(speed))
 		{
@@ -1340,8 +1344,6 @@ bool adjustAlignment () {
 
 void INThandler(int sig)
 {
-	//char c;
-	//signal(sig, SIG_IGN);
 	eStop();
 	printf("Emergency Shutdown Activated!\n");
 	exit(0);

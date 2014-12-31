@@ -117,7 +117,7 @@ void updateAngles()
 
 	//Calculate the angles from the gyro
 	gyroXangle+=rate_gyr_x*DT;
-	gyroYangle+=rate_gyr_y*DT;
+	gyroYangle+=rate_gyr_y*DT - 1;
 	gyroZangle+=rate_gyr_z*DT;
 
 
@@ -138,7 +138,7 @@ void updateAngles()
 
 //      Complementary filter used to combine the accelerometer and gyro values.
 	CFangleX=AA*(CFangleX+rate_gyr_x*DT) +(1 - AA) * AccXangle;
-	CFangleY=AA*(CFangleY+rate_gyr_y*DT) +(1 - AA) * AccYangle;
+	CFangleY=AA*(CFangleY+rate_gyr_y*DT - 1) +(1 - AA) * AccYangle;
 
 	robot.gyroXangle = gyroXangle;
 	robot.AccXangle = AccXangle;
