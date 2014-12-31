@@ -56,6 +56,7 @@ bool RFIDTracking = false; //whether the cart is currently RFID tracking
 bool properAlignment = true;
 volatile clock_t joyStartClock;
 int trackAndTurn = 0;
+int trackAndStrafe = 0;
 int motorArray[31][2];
 robotPosition robot;
 
@@ -95,6 +96,7 @@ PI_THREAD (myThread)	{
 				//is normally 0.03-0.04, only have it 0.08 for testing
 				//purposes, make sure to revert.
 	int i_thread = 0;	// test variable
+	float angleBeginTurn = 0.0;
 	printf("hello!\n");
 	joyStartClock = clock();
 	while(true)
@@ -113,7 +115,14 @@ PI_THREAD (myThread)	{
 		}
 		if (lineTracking)
 		{
-			lineTracking = lineTrack(lineTrackSpeed);
+			if(properAlignment != true)
+			{
+				properAlignment = adjustAlignment();
+			}
+			else
+			{
+				lineTracking = lineTrack(lineTrackSpeed);
+			}
 			printf("line tracking \n");
 		}
 		if(sideLineTracking)
@@ -129,10 +138,34 @@ PI_THREAD (myThread)	{
 		{
 			switch(trackAndTurn) {
 			case 1:
+				//make sure you have proper alignment
+				if(checkAlignment() == true)
+				{
+					trackAndTurn++;
+					printf("ready to go!\n");
+					printf("%d\n", trackAndTurn);
+				}
+				else
+				{
+					adjustAlignment();
+				}
+				break;
+			case 2:
+				//follow line until all yer damn side sensies are gone
+				lineTrack(27);
+				if(getSideSensorsPresent() == 0)
+				{
+					trackAndTurn++;
+					printf("ON THE WAY TO VIRIDIAN CIIIIITY\n");
+					printf("trackAndTurn now equals: %d\n", trackAndTurn);
+					
+				}
+				break;
+			case 3:
 				//follow line until side sensors read true
 				printf("line tracking!\n");
 				lineTrack(27);
-				if(getSideSensorsPresent() >= 2)
+				if(getSideSensorsPresent() >= 3)
 				{
 					trackAndTurn++;
 					printf("found an intersection!\n");
@@ -148,12 +181,12 @@ PI_THREAD (myThread)	{
 					}
 				}
 				break;
-			case 2:
+			case 4:
 				//slow down to -10 perecent until two side
 				//sensors read true
 				updateMotors();
 				printf("going back to the intersection\n");
-				if(getSideSensorsPresent() >= 2)
+				if(getSideSensorsPresent() >= 3)
 				{
 					trackAndTurn++;
 					printf("trackAndTurn now equals: %d\n", trackAndTurn);
@@ -162,7 +195,7 @@ PI_THREAD (myThread)	{
 					usleep(500000);
 				}
 				break;
-			case 3:
+			case 5:
 				//adjust alignment
 				printf("adjusting alignment for turn\n");
 				if(adjustAlignment())
@@ -172,25 +205,30 @@ PI_THREAD (myThread)	{
 					softStop();
 					printf("alignment set and beginning turn\n");
 					usleep(500000);
+					angleBeginTurn = robot.gyroYangle;
 					motorArray[DRIVE_FL][1] = -27;
 					motorArray[DRIVE_FR][1] = 27;
 					motorArray[DRIVE_RL][1] = -27;
 					motorArray[DRIVE_RR][1] = 27;
 				}
 				break;
-			case 4:
+			case 6:
 				//turn until all four main sensors read absent
 				updateMotors();
 				if(getSensorsPresent() == 0)
 				{
 					trackAndTurn++;
 				}
+				if(robot.gyroYangle - angleBeginTurn > 90.0)
+				{
+					trackAndTurn++;
+				}
 				break;
-			case 5:
+			case 7:
 				//turn until two side sensors read present
 				updateMotors();
 				printf("turning in intersection to the: left\n");
-				if(getSideSensorsPresent() >= 2)
+				if(getSideSensorsPresent() >= 3 || robot.gyroYangle - angleBeginTurn > 90.0)
 				{
 					trackAndTurn++;
 					printf("trackAndTurn now equals: %d\n", trackAndTurn);
@@ -203,9 +241,9 @@ PI_THREAD (myThread)	{
 					motorArray[DRIVE_RL][1] = -27;
 				}
 				break;
-			case 6:
+			case 8:
 				updateMotors();
-				if(getSensorsPresent() >= 2)
+				if(getSensorsPresent() == 4)
 				{
 					trackAndTurn++;
 					printf("trackAndTurn now equals: %d\n", trackAndTurn);
@@ -213,14 +251,21 @@ PI_THREAD (myThread)	{
 					printf("successfully found intersection after turn\n");
 				}
 				break;
-			case 7:
+			case 9:
 				//adjust alignment
 				//and either set trackAndTurn to 0 to stop
 				//or to 1 to create an infinite loop (thou arte my demon, infinite loop)
-				printf("adjusting alignment after turn\n");
-				if(adjustAlignment())
+				printf("dead reckonning after turn waaaahooooooo!\n");
+				motorArray[DRIVE_FR][0] = 27;
+				motorArray[DRIVE_FL][0] = 27;
+				motorArray[DRIVE_RR][0] = 27;
+				motorArray[DRIVE_RL][0] = 27;
+				updateMotors();
+				usleep(2000000);
+				softStop();
+				if(/*adjustAlignment()*/true)
 				{
-					trackAndTurn = 0;
+					trackAndTurn = 1;
 					printf("trackAndTurn now equals: %d\n", trackAndTurn);
 					printf("alignment adjusted, ready to begin again.\n");
 				}
@@ -229,12 +274,43 @@ PI_THREAD (myThread)	{
 				printf("improper step number\n");
 			}
 		}
+		if(trackAndStrafe > 0)
+		{
+			switch(trackAndStrafe) {
+			case 1:
+				//line track until you're past an intersection
+				lineTrack(27);
+				if(getSideSensorsPresent() == 0)
+				{
+					trackAndStrafe++;
+					printf("trackAndStrafe now equals: %d\n", trackAndStrafe);
+				}
+				break;
+			case 2:
+				//line track until you hit an intersection (3 sensors)
+				lineTrack(27);
+				if(getSideSensorsPresent() >= 3)
+				{
+					trackAndStrafe++;
+					printf("trackAndStrafe now equals: %d\n");
+					softStop();
+					usleep(500000);
+				}
+				break;
+			case 3:
+				//side line track
+				sideLineTrack(30);
+				break;
+			default:
+				printf("improper step number.\n");
+			}
+		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
 		 * so far, min. value seems to be 100,000 - below that and
 		 * CPU gobble occurs
 		 */
-		usleep(100000);
+		usleep(75000);
 	}
 }
 
@@ -490,6 +566,7 @@ int main(int argc, char **argv) {
 			if (comaddr == 1) {
 				lineTracking = true;
 				lineTrackSpeed = comval;
+				properAlignment = checkAlignment();
 				strcpy(reply, "true\n");
 			}
 			else
@@ -657,6 +734,19 @@ int main(int argc, char **argv) {
 				outputRobotPos();
 			}
 			strcpy(reply, "true\n");
+			break;
+		case 19:
+			//trackAndStrafe
+			trackAndStrafe = comaddr;
+			if(comaddr == 0)
+			{
+				softStop();
+				strcpy(reply, "false\n");
+			}
+			else
+			{
+				strcpy(reply, "true\n");
+			}
 			break;
 		case 99:	// quit
 			agvShutdown();
