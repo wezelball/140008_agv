@@ -21,3 +21,4 @@ int getSideSensorsPresent(void);
 bool checkAlignment(void);
 bool adjustAlignment(void);
 void INThandler(int);
+void driveStraight(int);

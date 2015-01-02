@@ -5,8 +5,6 @@
 
 #define PRESENT 0	// mag sensor sees tape
 #define ABSENT 1 	// mag sensor doesn't see tape
-// #define CW 1	//	yaw error clockwise
-// #define CCW -1	// yaw error counnterclockwise
 
 typedef enum { false = 0, true = !false} bool;
 // I hate having to do this, but I can't figure out a better way for now

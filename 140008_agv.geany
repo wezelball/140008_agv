@@ -17,10 +17,10 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=10
+current_page=0
 FILE_NAME_0=7419;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008_client.c;0;3
-FILE_NAME_1=15470;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008_server.c;0;3
-FILE_NAME_2=296;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008lib.h;0;3
+FILE_NAME_1=9956;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008_server.c;0;3
+FILE_NAME_2=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2F140008lib.h;0;3
 FILE_NAME_3=2872;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fjoystick.c;0;3
 FILE_NAME_4=1321;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fjoystick.h;0;3
 FILE_NAME_5=860;Make;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FMakefile;0;3
@@ -28,12 +28,7 @@ FILE_NAME_6=0;None;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fmap.dat;0;
 FILE_NAME_7=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fprocedures.h;0;3
 FILE_NAME_8=0;Markdown;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FREADME.md;0;3
 FILE_NAME_9=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FrobotMap.h;0;3
-FILE_NAME_10=792;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fprocedures.c;0;3
-FILE_NAME_11=3450;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fgyroprocedures.c;0;3
-FILE_NAME_12=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fgyroprocedures.h;0;3
-FILE_NAME_13=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fi2c-dev.h;0;3
-FILE_NAME_14=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FL3G.h;0;3
-FILE_NAME_15=0;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2FLSM303.h;0;3
+FILE_NAME_10=2795;C;0;EUTF-8;1;1;0;%2Fusr%2Flocal%2Fsrc%2F140008_agv%2Fprocedures.c;0;3
 
 [VTE]
 last_dir=/home

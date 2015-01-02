@@ -58,6 +58,8 @@ volatile clock_t joyStartClock;
 int trackAndTurn = 0;
 int trackAndStrafe = 0;
 int motorArray[31][2];
+bool drivingStraight;
+int driveStraightSpeed = 0;
 robotPosition robot;
 
 void gyro_update (void *ptr );
@@ -144,6 +146,7 @@ PI_THREAD (myThread)	{
 					trackAndTurn++;
 					printf("ready to go!\n");
 					printf("%d\n", trackAndTurn);
+					softStop();
 				}
 				else
 				{
@@ -152,7 +155,7 @@ PI_THREAD (myThread)	{
 				break;
 			case 2:
 				//follow line until all yer damn side sensies are gone
-				lineTrack(27);
+				lineTrack(63);
 				if(getSideSensorsPresent() == 0)
 				{
 					trackAndTurn++;
@@ -164,7 +167,7 @@ PI_THREAD (myThread)	{
 			case 3:
 				//follow line until side sensors read true
 				printf("line tracking!\n");
-				lineTrack(27);
+				lineTrack(63);
 				if(getSideSensorsPresent() >= 3)
 				{
 					trackAndTurn++;
@@ -304,6 +307,10 @@ PI_THREAD (myThread)	{
 			default:
 				printf("improper step number.\n");
 			}
+		}
+		if(drivingStraight)
+		{
+			driveStraight(driveStraightSpeed);
 		}
 		/*
 		 * This is required to prevent thread from consuming 100% CPU
@@ -746,6 +753,22 @@ int main(int argc, char **argv) {
 			else
 			{
 				strcpy(reply, "true\n");
+			}
+			break;
+		case 20:
+			if(comaddr == 1)
+			{
+				robot.gyroYangle = 0.0;
+				driveStraightSpeed = comval;
+				drivingStraight = true;
+				strcpy(reply, "true\n");
+			}
+			else
+			{
+				driveStraightSpeed = 0;
+				softStop();
+				drivingStraight = false;
+				strcpy(reply, "false\n");
 			}
 			break;
 		case 99:	// quit

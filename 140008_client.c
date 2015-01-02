@@ -111,6 +111,12 @@ int main(int argc, char **argv) {
 		//exit(1);
 	}
 
+/* check command line arguments */
+if (argc != 3) {
+  fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
+  exit(0);
+}
+
 	while(cont == 0)
 	{
 		// Why are we doing argument checking and
@@ -118,14 +124,9 @@ int main(int argc, char **argv) {
 		// this may be causing the excessivs file open
 		// errors we are having
 
-		/* why does this have to be here???? shit we can fix later */
+		/* FIXME - THIS SECTION SHOULD BE OUTSIDE OF while() LOOP */
 		/* ****************************************************** */
 
-		/* check command line arguments */
-		if (argc != 3) {
-			fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
-			exit(0);
-			}
 		hostname = argv[1];
 		portno = atoi(argv[2]);
 
@@ -133,24 +134,33 @@ int main(int argc, char **argv) {
 		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd < 0)
 		error("ERROR opening socket");
-
+		
 		/* gethostbyname: get the server's DNS entry */
 		server = gethostbyname(hostname);
 		if (server == NULL) {
-			fprintf(stderr,"ERROR, no such host as %s\n", hostname);
-			exit(0);
+		fprintf(stderr,"ERROR, no such host as %s\n", hostname);
+		exit(0);
 		}
+		
 		/* build the server's Internet address */
 		bzero((char *) &serveraddr, sizeof(serveraddr));
 		serveraddr.sin_family = AF_INET;
 		bcopy((char *)server->h_addr,
 		(char *)&serveraddr.sin_addr.s_addr, server->h_length);
 		serveraddr.sin_port = htons(portno);
-		
-		/* connect: create a connection with the server */
-		if (connect(sockfd, &serveraddr, sizeof(serveraddr)) < 0)
-		error("ERROR connecting");
-		
+
+
+		/* ****************************************************** */
+		/* FIXME - THIS SECTION SHOULD BE OUTSIDE OF while() LOOP */
+    //I think I was just able to pull it out of loop
+    //except for this part
+                /*Connect: create a connection with the server*/
+                if (connect(sockfd, &serveraddr, sizeof(serveraddr)) < 0)
+                {
+                        error("ERROR connecting");
+                }
+    
+    
 		bzero(buf, BUFSIZE);
 
 		if (!joystickControl) {

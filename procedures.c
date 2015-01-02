@@ -9,46 +9,22 @@
 #include "procedures.h"
 #include "robotMap.h"
 
-/* These are declared in 140008_server.c */
-extern bool firstTimeTracking;	// First iteration of line tracking
-extern bool lineTracking;			// We are line tracking
-/* 
- * Found in 140008lib.h, this is a struct that defines robot
- * in 2D space position according to the IMU 
- */
-extern robotPosition robot;		
+// These are declared in 140008_server.c
+extern bool firstTimeTracking;
+extern bool lineTracking;
+extern robotPosition robot;
 
-/*
- * Some of these variables should be boolean, would make code 
- * easier to read
- */ 
-
-/* 
- * 0 if no yaw error (all sensors on)
- * 1 if yaw error clockwise
- * -1 if yaw error counterclockwise
- * 
- * This is okay to have 3 states, but defining them would make code
- * clearer - see my comment in 140008lib.h
- */
-int yaw = 0;					// 0 if no yaw error, 1 if error
-									// should name yawError instead
-int yawCounter = 0;			// increments how drastic the yaw is
-int translated = 0;			// same as yaw variable, 0 if no error, 1 if right, -1 if left.
-int translateCounter = 0;	// increments how drastic the translation error is
-
-/* 
- * 0 if no line error (all sensors on)
- * 1 is all sensors off
- * -1 if both rear sensors off (why this state?)
- * should be boolean
- */
-int lineError = 0;										
-int lineErrorSent = 0;		// Please add definition here - not 100% sure what this does
-int prevLineSpeed = 0;		// defines what the prev line tracking rate was, and if
-				//different reset the counters.
-int motorArray[31][2];		// holds current motor rates and desired motor rates
-				///only logically used in updateMotors(), and reset in softStop()
+int yaw = 0;		//states whether or not your yawwed, 0 is not, -1 is ccw, and 1 is cw
+int yawCounter = 0;	//counts how drastically you have to modify your yaw	
+int translated = 0; // same as yaw var, but for translation.  -1 is left 1 is right
+int translateCounter = 0;	//same as yawCounter but for translation.
+int lineError = 0;	//states if you have a lineError.  Will eventually be bool
+int lineErrorSent = 0;	//no idea
+int prevLineSpeed = 0;	/* holds the previous line speed for line tracking, and
+						 * resets the counters and flags for line tracking when
+						 * you switch to a different speed.
+						 */
+int motorArray[31][2];	//holds the motorArray values
 
 /*
  * error - wrapper for perror
@@ -59,8 +35,6 @@ void error(char *msg) {
 }
 
 /* Abstracted I/O functions*/
-
-/* Write a single bit to an ouput */
 void bitWrite(int pin, int value)	{
 	#ifdef RPI
 		if (value == 0)	{
@@ -77,7 +51,6 @@ void bitWrite(int pin, int value)	{
 	#endif
 }
 
-/* Read a single bit from an input */
 int bitRead(int pin)	{
 	#ifdef RPI
 		return (digitalRead(pin));
@@ -87,7 +60,6 @@ int bitRead(int pin)	{
 	#endif
 }
 
-/* Write an "analog" value to a PWM output */
 int PWMWrite(int pin, int value)	{
 	int scaledValue = value/9 + 15;
 	#ifdef RPI
@@ -98,17 +70,13 @@ int PWMWrite(int pin, int value)	{
 	return scaledValue;
 }
 
-/* Stop all motors without shutting off isolation relay */
+// Stop all motors without shutting off isolation relay
 void softStop(void){
 	PWMWrite(DRIVE_FR, 0);
 	PWMWrite(DRIVE_FL, 0);
 	PWMWrite(DRIVE_RR, 0);
 	PWMWrite(DRIVE_RL, 0);
 	int i = 0;
-	
-	/* resets the whole motorArray so if updateMotors is called
-	 * it won't accidentally send a previous value.
-	 */
 	while(i < 32)
 	{
 		motorArray[i][0] = 0;
@@ -118,7 +86,7 @@ void softStop(void){
 	printf("Soft stopped the robot\n");
 }
 
-/* Stop all motors and shut off isolation relay */
+// Stop all motors and shut off isolation relay
 void eStop(void){
 	PWMWrite(DRIVE_FR, 0);
 	PWMWrite(DRIVE_FL, 0);
@@ -127,7 +95,7 @@ void eStop(void){
 	bitWrite(RELAY_ENABLE, 0);
 }
 
-/* Stop motion, clean up, and exit */
+// Stop motion, clean up, and exit
 int agvShutdown(void) {
 	lineTracking = false;
 	firstTimeTracking = true;
@@ -138,22 +106,14 @@ int agvShutdown(void) {
 
 /*
  *  Call this procedure if the tracking flag is set to true
- *  Return a value of true if successful
+ * 	Return a value of true if successful
  */
 
 bool lineTrack(int speed) {
 	// mag sensor values read once per loop iteration
 	int magFL, magFR, magRL, magRR;
-	// these are how much to add/subtract from each motor,
-	//and tester holds the most negative value of the four
-	// - if tester is negative, add it to all so all mod's are the same sign.
 	int FLmod, FRmod, RLmod, RRmod, tester;
-	int fwd = 1;	// robot is tracking in forward direction
-	
-	/* If you choose to track at a different rate without resetting,
-	 * this resets all the counters to 0. 
-	 * 
-	 */
+	int fwd = 1;
 	if(prevLineSpeed != speed)
 	{
 		yawCounter = 0;
@@ -162,10 +122,6 @@ bool lineTrack(int speed) {
 		translated = 0;
 		lineError = 0;
 	}
-	
-	/* Please explain the function of the following code 
-	 * block 
-	 */
 	if (firstTimeTracking)
 	{
 		printf("Initializing motors\n");
@@ -176,11 +132,8 @@ bool lineTrack(int speed) {
 		PWMWrite(DRIVE_RL, speed + DRIVE_RL_OFFSET);
 
 		firstTimeTracking = false;
-	}//this code is unnecessary now.
-	
+	}
 	// Just read the sensors once per loop
-	
-	/* going forward, read the sensors as defined */
 	if(fwd == 1)
 	{
 		magFL = bitRead(MAG_FL);
@@ -188,13 +141,12 @@ bool lineTrack(int speed) {
 		magRL = bitRead(MAG_RL);
 		magRR = bitRead(MAG_RR);
 	}
-	/* going backwards, redefine the sensors in reverse order */
 	else
 	{
-		magRR = bitRead(MAG_FL);	// Rear Right Rear now Front Left
-		magRL = bitRead(MAG_FR);	// Rear Left now Front Right
-		magFR = bitRead(MAG_RL);	// Front Right not Rear Left
-		magFL = bitRead(MAG_RR);	// Front left now Rear Right
+		magRR = bitRead(MAG_FL);
+		magRL = bitRead(MAG_FR);
+		magFR = bitRead(MAG_RL);
+		magFL = bitRead(MAG_RR);
 	}
 
 	/*
@@ -205,10 +157,9 @@ bool lineTrack(int speed) {
 	if (magFR == PRESENT && magFL == PRESENT && magRR == PRESENT && magRL == PRESENT)
 	{
 		printf("Sensor alignment: proper\n");
-		/* There is no line error, so set false - why not boolean? */
 		if(lineError != 0)
 		{
-			printf("Line error fixed\n");
+			printf("error fixed\n");
 			lineError = 0;
 		}
 		if(yaw != 0)
@@ -352,6 +303,7 @@ bool lineTrack(int speed) {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
+		//translate to the left
 		printf("Sensor alignment: translated right\n");
 		if(translateCounter < abs(speed))
 		{
@@ -448,12 +400,13 @@ bool lineTrack(int speed) {
 		softStop();
 		return false;
 	}
+	
 	if(fwd == 1)
 	{
-		FRmod = yawCounter*yaw + translateCounter*translated;
-		FLmod = -1*yawCounter*yaw - translateCounter*translated;
-		RRmod = yawCounter*yaw - translateCounter*translated;
-		RLmod = -1*yawCounter*yaw + translateCounter*translated;
+		FRmod = (yawCounter*yaw + translateCounter*translated)/2;
+		FLmod = (-1*yawCounter*yaw - translateCounter*translated)/2;
+		RRmod = (yawCounter*yaw - translateCounter*translated)/2;
+		RLmod = (-1*yawCounter*yaw + translateCounter*translated)/2;
 		printf("FR: %d\nFL: %d\nRR: %d\nRL: %d\n", FRmod, FLmod, RRmod, RLmod);
 		tester = FRmod;
 		if(FLmod < tester)
@@ -734,6 +687,7 @@ bool sideLineTrack(int speed) {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
+		//translate to the left
 		printf("Sensor alignment: translated right\n");
 		if(translateCounter < abs(speed))
 		{
@@ -1112,16 +1066,13 @@ bool adjustAlignment () {
 	if (magFR == PRESENT && magFL == PRESENT && magRR == ABSENT && magRL == ABSENT)
 	{
 		printf("Sensor alignment: yaw unknown both rear sensors off\n");
-		if(fwd == -1)
+		if(yawCounter < abs(speed))
 		{
-			/* 
-			 * This is the only case where line error is set to -1
-			 *	Should be boolean 
-			 */
-			lineError = -1;
+			yawCounter = yawCounter + 1 + abs((speed)/30);
 		}
-		parallelError = 1;
-		printf("no this is parallelError!: %d\n", parallelError);
+		//parallelError = 1;
+		//printf("no this is parallelError!: %d\n", parallelError);
+		//who wrote this???
 	}
 	if (magFR == PRESENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
 	{
@@ -1213,6 +1164,7 @@ bool adjustAlignment () {
 	}
 	if (magFR == ABSENT && magFL == PRESENT && magRR == ABSENT && magRL == PRESENT)
 	{
+		//translate to the left
 		printf("Sensor alignment: translated right\n");
 		if(translateCounter < abs(speed))
 		{
@@ -1249,11 +1201,11 @@ bool adjustAlignment () {
 	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == PRESENT)
 	{
 		printf("Sensor alignment: yaw unknown both front sensors off\n");
-		if(fwd == 1)
+		if(yawCounter < abs(speed))
 		{
-			lineError = 1;
+			yawCounter = yawCounter + 1 + (abs(speed)/30);;
 		}
-		parallelError = -1;
+		//parallelError = -1;
 	}
 	if (magFR == ABSENT && magFL == ABSENT && magRR == PRESENT && magRL == ABSENT)
 	{
@@ -1344,7 +1296,20 @@ bool adjustAlignment () {
 
 void INThandler(int sig)
 {
+	//char c;
+	//signal(sig, SIG_IGN);
 	eStop();
 	printf("Emergency Shutdown Activated!\n");
 	exit(0);
+}
+
+void driveStraight (int speed) {
+	int offset;
+	offset = robot.gyroYangle;
+	motorArray[DRIVE_FR][1] = speed - offset;
+	motorArray[DRIVE_FL][1] = speed + offset;
+	motorArray[DRIVE_RR][1] = speed - offset;
+	motorArray[DRIVE_RL][1] = speed + offset;
+	updateMotors();
+	outputRobotPos();
 }
